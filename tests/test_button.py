@@ -45,7 +45,7 @@ class TestRefreshButton:
         assert button._attr_device_info["identifiers"] == {
             ("schluterditraheat", "aa11bb22cc33dd44")
         }
-        assert button._attr_name == "Refresh"
+        assert button._attr_translation_key == "refresh"
 
     async def test_press_requests_refresh(self, coordinator):
         """Test pressing the button triggers a coordinator refresh."""

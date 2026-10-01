@@ -46,6 +46,19 @@
     }
   },
   "entity": {
+    "binary_sensor": {
+      "gfci_status": {
+        "name": "GFCI Status"
+      },
+      "fault": {
+        "name": "Fault"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    },
     "select": {
       "occupancy": {
         "name": "Occupancy",
@@ -53,6 +66,28 @@
           "home": "Home",
           "away": "Away"
         }
+      }
+    },
+    "sensor": {
+      "heating_output": {
+        "name": "Heating Output"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "wifi_signal": {
+        "name": "Wi-Fi Signal"
+      },
+      "electricity_price": {
+        "name": "Electricity price"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "early_start": {
+        "name": "Early start"
       }
     }
   }

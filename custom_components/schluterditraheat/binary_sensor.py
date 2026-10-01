@@ -40,7 +40,7 @@ class SchluterGfciBinarySensor(SchluterEntity, BinarySensorEntity):
     """Binary sensor for GFCI fault detection on a Schluter thermostat."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "GFCI Status"
+    _attr_translation_key = "gfci_status"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the GFCI binary sensor."""
@@ -65,7 +65,7 @@ class SchluterFaultBinarySensor(SchluterEntity, BinarySensorEntity):
     """
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
-    _attr_name = "Fault"
+    _attr_translation_key = "fault"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the fault sensor."""

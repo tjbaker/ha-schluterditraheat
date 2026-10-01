@@ -38,7 +38,7 @@ class SchluterRefreshButton(CoordinatorEntity[SchluterDataUpdateCoordinator], Bu
     """
 
     _attr_has_entity_name = True
-    _attr_name = "Refresh"
+    _attr_translation_key = "refresh"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the refresh button."""

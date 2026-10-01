@@ -29,7 +29,7 @@ class SchluterSwitchDescription(SwitchEntityDescription):
 SWITCHES: tuple[SchluterSwitchDescription, ...] = (
     SchluterSwitchDescription(
         key="child_lock",
-        name="Child lock",
+        translation_key="child_lock",
         icon="mdi:lock",
         entity_category=EntityCategory.CONFIG,
         data_key="child_lock",
@@ -39,7 +39,7 @@ SWITCHES: tuple[SchluterSwitchDescription, ...] = (
     ),
     SchluterSwitchDescription(
         key="early_start",
-        name="Early start",
+        translation_key="early_start",
         icon="mdi:clock-start",
         entity_category=EntityCategory.CONFIG,
         data_key="early_start",
@@ -102,7 +102,7 @@ class SchluterSettingSwitch(SchluterEntity, SwitchEntity):
                 self._device_id, description.attribute, value
             )
         except SchluterApiError as err:
-            raise HomeAssistantError(f"Failed to change {description.name}: {err}") from err
+            raise HomeAssistantError(f"Failed to change {self.name}: {err}") from err
 
         # Optimistic update — show the new state now, confirm on the next poll
         if self._device_id in self.coordinator.data:
