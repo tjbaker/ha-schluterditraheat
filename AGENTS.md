@@ -68,19 +68,22 @@ account's session limit and API rate limits. Avoid restart loops.
 
 | File | Responsibility |
 |---|---|
-| `__init__.py` | Entry setup/unload, hourly energy-import timer; `SchluterDataUpdateCoordinator` (300s poll, hourly static refresh, rate-limit throttling, backoff and daily-cap pause) |
-| `api.py` | Async aiohttp client using HA's shared session: login, session reuse, one re-auth retry, rate-limit header parsing, JSON error-code mapping, consumption history |
-| `config_flow.py` | User and reauth steps (email/password) |
-| `entity.py` | `SchluterEntity` base: coordinator wiring, availability, shared `device_info` |
-| `climate.py` | Thermostat entity: HVAC modes, frost-protection preset, setpoint, optimistic writes |
-| `sensor.py` | Heating output %, power (W), Wi-Fi signal (dBm) |
-| `binary_sensor.py` | GFCI fault (problem) sensor |
+| `__init__.py` | Entry setup/unload/removal, hourly energy-import timer, logout on stop; `SchluterDataUpdateCoordinator` (300s poll, hourly static refresh, per-poll location mode, rate-limit throttling, backoff and daily-cap pause) |
+| `api.py` | Async aiohttp client using HA's shared session: login/logout, session reuse, one re-auth retry, rate-limit header parsing, JSON error-code mapping, device attributes, location mode, consumption history |
+| `config_flow.py` | User, reauth and reconfigure steps (email/password) |
+| `entity.py` | `SchluterEntity` (thermostat device) and `SchluterLocationEntity` (location service device) bases: coordinator wiring, availability, shared `device_info` |
+| `climate.py` | Thermostat entity: HVAC modes, Away and Frost protection presets, setpoint range from the device, optimistic writes |
+| `sensor.py` | Heating output %, power (W), Wi-Fi signal (dBm), location electricity price |
+| `binary_sensor.py` | GFCI and fault-code problem sensors |
+| `switch.py` | Child lock and Early start configuration switches |
+| `select.py` | Location Home/Away (occupancy) |
 | `button.py` | Refresh button that forces an immediate poll |
-| `energy.py` | Imports hourly consumption into long-term statistics for the Energy dashboard |
+| `energy.py` | Imports consumption into long-term statistics (hourly, plus a daily backfill on first import) |
 | `diagnostics.py` | Redacted diagnostics download with a health analysis (issues and recommendations) |
+| `issues.py` | Repairs issue for the account's session cap |
 | `stats.py` | Diagnostics-only counters kept by the API client, coordinator and energy import |
-| `const.py` | API URL, intervals, backoff, limits, temperature limits, mode strings |
-| `strings.json` | Config flow strings |
+| `const.py` | API URL, intervals, backoff, limits, temperature limits, mode, preset and occupancy strings |
+| `strings.json` | UI text source; copied to `translations/en.json`, translated in `es.json` and `fr.json` |
 
 Coordinator data shape: `dict[device_id, dict[str, Any]]`, merging static
 device metadata with per-poll attributes. Each entity reads its own
@@ -99,17 +102,14 @@ device metadata with per-poll attributes. Each entity reads its own
 - Config flow: reauth and reconfigure use `async_update_reload_and_abort`;
   the unique ID is the lowercased email, checked before any login.
 - UI text lives in `strings.json` and must be copied to
-  `translations/en.json` (a test enforces this); custom integrations
-  only load the latter.
+  `translations/en.json`; custom integrations only load `translations/`.
+  Every string must also exist in `es.json` and `fr.json` with the same
+  placeholders (tests enforce both). Entity names come from
+  `_attr_translation_key`, never hardcoded `_attr_name`, except the
+  climate entity, which names itself after the room.
 - Diagnostics must stay redacted: never include the email, password,
   session id, tokens, full device identifiers or location names. Extend
   `diagnostics.py` and the `stats.py` counters when adding failure modes.
-
-### Still to migrate
-
-- Entity names via `_attr_translation_key` instead of hardcoded
-  `_attr_name`, subject to the compatibility rules above (entity IDs
-  must not change).
 
 ## Schluter / Neviweb API Notes
 
@@ -126,9 +126,27 @@ device metadata with per-poll attributes. Each entity reads its own
 - **Rate limits**: HTTP 429, and a daily request cap (`ACCDAYREQMAX`).
   Sinopé asks for polling no faster than 300s. Keep request counts per poll
   minimal and back off on limits.
+- Location occupancy: `GET /location/{id}/mode` returns `{"mode": "home"}`;
+  `POST /location/{id}/mode` with `{"mode": "away"}` sets every thermostat
+  at the location. Per thermostat, `occupancyMode` home/away switches to
+  `roomSetpointAway` and back (the thermostat restores its setpoint).
+- Writes confirmed on a DITRA-HEAT-E-RS1: `setpointMode`
+  (auto/manual/off/frostProtection; `autoBypass` is ignored from off),
+  `roomSetpoint`, `occupancyMode`, `keyboardLock` (lock/unlock),
+  `earlyStartCfg` (on/off).
+- Read-only extras: `GET /device/{id}/consumption/{hourly|daily|monthly}`
+  (rolling windows of ~2 days / ~1 month / months; date parameters are
+  ignored), `GET /device/{id}/schedule?day=monday` (full lowercase day
+  names; 8 periods of `{time, value, type}`), location `kwhCost`, and
+  `errorCodeSet1` (`{"raw": n}`, 0 = no fault). An RS1 reports 31
+  attributes in total; there is no outdoor temperature or humidity.
+- Error codes seen: `SVCINVREQ` (unknown endpoint), `VALMISDATA` /
+  `VALMISONEOF` (missing parameters), `VALINVLD` (invalid value).
 - The API is undocumented. Confirm attribute names and values against a
   real device before relying on them, and record what you learned in the
-  commit body.
+  commit body. Writes to a real thermostat are run by the maintainer, not
+  by an agent: provide a reversible script (read, write, read back,
+  restore in `finally`) for them to run.
 - Temperatures are Celsius. Some endpoints return a single object where a
   list is expected; use the `_validate_response_list` helpers.
 
