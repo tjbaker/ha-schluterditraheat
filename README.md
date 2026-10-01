@@ -12,18 +12,15 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 
 ## Features
 
-- **Climate entity** — control temperature, mode (Auto, Heat/Manual, Off) and presets (Away, Frost protection) per thermostat
-- **Heating output sensor** — track heating output percentage with history graphs and long-term statistics
-- **Power sensor** — instantaneous power draw (watts) of the connected heating load
-- **Energy dashboard** — energy consumption imported into long-term statistics, backfilled with about a month of history on first setup, plus the electricity price from the Schluter app for cost tracking
-- **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
-- **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
-- **Away preset** — switches the thermostat to the away temperature set in the Schluter app, and back
-- **Home/Away for the whole home** — switch every thermostat at a location between Home and Away at once, like the Schluter app's mode; useful with presence detection
-- **Fault sensor** — turns on when the thermostat reports a fault code
-- **Thermostat settings** — Child lock (locks the thermostat's touchscreen) and Early start (pre-heats so the floor reaches the scheduled temperature on time)
-- **Device metadata** — model, software and hardware version, and serial number on the device page
-- **Diagnostics** — downloadable, redacted snapshot with a health check that flags rate limits, session-limit errors, weak Wi-Fi, GFCI faults and offline thermostats
+- **Thermostat control** — set the temperature, mode (Auto, Heat, Off) and presets (Away, Frost protection) for each thermostat
+- **Home/Away for the whole home** — switch every thermostat at a location between Home and Away at once, like the Schluter app; useful with presence detection
+- **Energy dashboard** — consumption imported into long-term statistics, backfilled with about a month of history on first setup, plus the electricity price from the Schluter app for cost tracking
+- **Live readings** — heating output, power draw and Wi-Fi signal
+- **Safety** — GFCI and thermostat fault sensors
+- **Thermostat settings** — Child lock and Early start
+- **Device metadata** — model, firmware and hardware version, and serial number on the device page
+- **Diagnostics and repairs** — a redacted diagnostics download with a health check, and a Repairs notice when the account hits its session limit
+- **Languages** — English, Spanish and French
 
 ## Installation
 
@@ -44,37 +41,57 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 
 ## Configuration
 
-Enter your [schluterditraheat.com](https://schluterditraheat.com) account credentials when prompted by the config flow. All thermostats on your account will be discovered automatically.
+Enter your [schluterditraheat.com](https://schluterditraheat.com) account credentials when prompted. All thermostats on your account are discovered automatically.
+
+To change the saved password later (for example after changing it in the Schluter app), use **Settings → Devices & Services → Schluter DITRA-HEAT → ⋮ → Reconfigure**. If Schluter rejects the saved password, Home Assistant asks for the new one.
 
 **Note:** Adding or removing thermostats from your Schluter account requires reloading the integration in Home Assistant.
 
 ## Entities
 
-Each thermostat creates the following entities, grouped under a single device:
+### Thermostat device
+
+Each thermostat appears as a device named after its room:
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| Floor Heat | Climate | Temperature control and mode selection |
+| Floor Heat | Climate | Temperature, mode and presets (see below) |
 | Heating Output | Sensor | Current heating output percentage (0–100%) |
 | Power | Sensor | Instantaneous power draw in watts — full connected load while heating, 0 when idle (the cable switches on and off rather than modulating) |
-| GFCI Status | Binary Sensor | Ground fault detection (problem device class) |
-| Refresh | Button | Force an immediate poll of the cloud (see below) |
+| GFCI Status | Binary sensor | Ground fault detection (problem) |
+| Fault | Binary sensor | On when the thermostat reports a fault; the raw code is in the `error_code` attribute (problem) |
 | Wi-Fi Signal | Sensor | Signal strength in dBm (diagnostic) |
-| Electricity price | Sensor | Price per kWh set for the location in the Schluter app, on a separate device for the location. Only created when a price is set. |
-| Fault | Binary Sensor | On when the thermostat reports a fault; the raw code is in the `error_code` attribute (problem device class) |
-| Occupancy | Select | Home or Away for every thermostat at the location, on the location device |
+| Refresh | Button | Poll the cloud now instead of waiting for the next scheduled poll |
 | Child lock | Switch | Locks the thermostat's touchscreen (configuration) |
 | Early start | Switch | Heats ahead of schedule changes so the floor is at temperature on time (configuration) |
 
-The device page also shows the model, software version, hardware version and serial number reported by the thermostat.
+The Fault, Wi-Fi, Child lock and Early start entities are only created when the thermostat reports them.
 
-The web app renders the same Wi-Fi reading as a five-level scale (amazing, very good, okay, weak, very weak). The API returns the underlying dBm value, which is what this integration exposes; use a template sensor if you want the bucketed wording.
+**Modes:** *Auto* follows the schedule set in the Schluter app, *Heat* holds the temperature you set, and *Off* turns the floor off. The setpoint range comes from the thermostat (5–32 °C by default).
 
-In addition, each thermostat's hourly energy consumption is imported into Home Assistant's long-term statistics (as an external statistic, in kWh) so it can be added to the **Energy dashboard**. The statistic refreshes hourly. On first setup it's backfilled from what the cloud still holds: about the last two days hour by hour, and roughly the month before that as one value per day. Older usage isn't available. The day where the daily and hourly history meet may be left out, so energy is never counted twice. Installs that already have this statistic aren't backfilled, because inserting older rows would corrupt the existing totals.
+**Presets:**
+- *Away* switches the thermostat to the away temperature set in the Schluter app; choosing *None* restores the previous temperature.
+- *Frost protection* keeps the floor just warm enough to prevent freezing.
+- Only one preset is active at a time. Leaving *Away* never turns heating on by itself.
 
-To show cost, open **Settings → Dashboards → Energy**, edit the thermostat's consumption entry, and choose **Use an entity with current price** with the **Electricity price** sensor. The price is the one set for your home in the Schluter app.
+The Wi-Fi reading is the raw dBm value; the Schluter app shows the same reading as a five-level scale.
 
-> **Note:** The thermostat reports energy per hour, not a continuously increasing meter reading, so energy appears as an Energy-dashboard statistic rather than a regular sensor entity. Add it via **Settings → Dashboards → Energy → Add consumption**, where it is listed as `Schluter DITRA-HEAT` energy for each thermostat.
+### Location device
+
+Each home (location) in the Schluter app appears as a separate device:
+
+| Entity | Type | Description |
+|--------|------|-------------|
+| Occupancy | Select | Home or Away for every thermostat at the location, the same as the Schluter app's mode |
+| Electricity price | Sensor | Price per kWh set for the location in the Schluter app; only created when a price is set |
+
+### Energy
+
+Each thermostat's hourly energy consumption is imported into Home Assistant's long-term statistics (as an external statistic, in kWh) so it can be added to the **Energy dashboard**. The statistic refreshes hourly. On first setup it's backfilled from what the cloud still holds: about the last two days hour by hour, and roughly the month before that as one value per day. Older usage isn't available. The day where the daily and hourly history meet may be left out, so energy is never counted twice. Installs that already have this statistic aren't backfilled, because inserting older rows would corrupt the existing totals.
+
+Add it via **Settings → Dashboards → Energy → Add consumption**, where it is listed as `Schluter DITRA-HEAT` energy for each thermostat. To show cost, edit that entry, choose **Use an entity with current price**, and pick the **Electricity price** sensor.
+
+> **Note:** The thermostat reports energy per hour, not a continuously increasing meter reading, so energy appears as an Energy-dashboard statistic rather than a regular sensor entity.
 
 > **Use the imported statistic for energy, not the Power sensor.** The imported consumption is the accurate energy figure and the one to add to the Energy dashboard. Do **not** build energy from the Power sensor (for example with a Riemann-sum integration helper): the thermostat is polled every five minutes while the heating cable switches on and off on a much faster cycle, so an integration of those sparse samples will not match actual usage. The Power sensor is meant for live power draw and automations, not energy totals.
 
