@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 import aiohttp
-import async_timeout
 
 from .const import API_BASE_URL, API_TIMEOUT
 
@@ -68,7 +67,7 @@ class SchluterApi:
         }
 
         try:
-            async with async_timeout.timeout(API_TIMEOUT):
+            async with asyncio.timeout(API_TIMEOUT):
                 async with self._session.post(url, json=payload, headers=headers) as resp:
                     if resp.status == 401:
                         raise SchluterAuthenticationError("Invalid username or password")
@@ -158,7 +157,7 @@ class SchluterApi:
             cookies["refreshToken"] = self._refresh_token
 
         try:
-            async with async_timeout.timeout(API_TIMEOUT):
+            async with asyncio.timeout(API_TIMEOUT):
                 async with self._session.request(
                     method, url, headers=headers, cookies=cookies, **kwargs
                 ) as resp:
