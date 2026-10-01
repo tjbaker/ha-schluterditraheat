@@ -1,33 +1,63 @@
 # serializer version: 1
 # name: TestRegistry.test_device_snapshot
-  DeviceRegistryEntrySnapshot({
-    'area_id': None,
-    'config_entry_id': <ANY>,
-    'config_subentry_id': <ANY>,
-    'configuration_url': None,
-    'connections': set({
+  list([
+    DeviceRegistryEntrySnapshot({
+      'area_id': None,
+      'config_entry_id': <ANY>,
+      'config_subentry_id': <ANY>,
+      'configuration_url': None,
+      'connections': set({
+      }),
+      'disabled_by': None,
+      'entry_type': None,
+      'hw_version': '1',
+      'id': <ANY>,
+      'identifiers': set({
+        tuple(
+          'schluterditraheat',
+          'a1b2c3d4e5f60718',
+        ),
+      }),
+      'labels': set({
+      }),
+      'manufacturer': 'Schluter',
+      'model': 'DITRA-HEAT-E-RS1',
+      'model_id': None,
+      'name': 'Foyer',
+      'name_by_user': None,
+      'serial_number': 'a1b2c3d4e5f60718',
+      'sw_version': '3.7.10',
+      'via_device_id': None,
     }),
-    'disabled_by': None,
-    'entry_type': None,
-    'hw_version': '1',
-    'id': <ANY>,
-    'identifiers': set({
-      tuple(
-        'schluterditraheat',
-        'a1b2c3d4e5f60718',
-      ),
+    DeviceRegistryEntrySnapshot({
+      'area_id': None,
+      'config_entry_id': <ANY>,
+      'config_subentry_id': <ANY>,
+      'configuration_url': None,
+      'connections': set({
+      }),
+      'disabled_by': None,
+      'entry_type': <DeviceEntryType.SERVICE: 'service'>,
+      'hw_version': None,
+      'id': <ANY>,
+      'identifiers': set({
+        tuple(
+          'schluterditraheat',
+          'location_245001',
+        ),
+      }),
+      'labels': set({
+      }),
+      'manufacturer': 'Schluter',
+      'model': None,
+      'model_id': None,
+      'name': 'Home',
+      'name_by_user': None,
+      'serial_number': None,
+      'sw_version': None,
+      'via_device_id': None,
     }),
-    'labels': set({
-    }),
-    'manufacturer': 'Schluter',
-    'model': 'DITRA-HEAT-E-RS1',
-    'model_id': None,
-    'name': 'Foyer',
-    'name_by_user': None,
-    'serial_number': 'a1b2c3d4e5f60718',
-    'sw_version': '3.7.10',
-    'via_device_id': None,
-  })
+  ])
 # ---
 # name: TestRegistry.test_entities_and_states_snapshot[binary_sensor.foyer_gfci_status-entry]
   EntityRegistryEntrySnapshot({
@@ -376,5 +406,57 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': '-75',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[sensor.home_electricity_price-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.home_electricity_price',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Electricity price',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:cash',
+    'original_name': 'Electricity price',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'location_245001_electricity_price',
+    'unit_of_measurement': 'EUR/kWh',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[sensor.home_electricity_price-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Home Electricity price',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:cash',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'EUR/kWh',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.home_electricity_price',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '0.0885',
   })
 # ---

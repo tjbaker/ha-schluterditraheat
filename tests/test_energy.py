@@ -180,3 +180,84 @@ class TestUpdateEnergyStatistics:
 
         api.get_consumption_history.assert_not_awaited()
         add_stats.assert_not_called()
+
+
+DAILY = {
+    "history": [
+        {"date": f"2026-09-{day:02d}T12:00:00.000Z", "period": 1000} for day in range(1, 30)
+    ]
+}
+
+
+class TestDailyBackfill:
+    """First import prepends daily history that cannot overlap the hourly data."""
+
+    @pytest.fixture
+    def api(self) -> MagicMock:
+        """API mock serving daily and hourly history, with real parsing."""
+        from custom_components.schluterditraheat.api import SchluterApi
+
+        mock = MagicMock()
+
+        async def history(device_id: int, granularity: str) -> dict:
+            return DAILY if granularity == "daily" else HISTORY
+
+        mock.get_consumption_history = AsyncMock(side_effect=history)
+        mock.parse_consumption_history = SchluterApi.parse_consumption_history
+        mock.build_energy_statistics = SchluterApi.build_energy_statistics
+        return mock
+
+    async def _run(self, api: MagicMock, last_stats: dict) -> MagicMock:
+        from custom_components.schluterditraheat import energy
+
+        recorder = MagicMock()
+        recorder.async_add_executor_job = AsyncMock(return_value=last_stats)
+        with (
+            patch.object(energy, "get_instance", return_value=recorder),
+            patch.object(energy, "async_add_external_statistics") as add_stats,
+        ):
+            await energy.async_update_energy_statistics(MagicMock(), api, [THERMOSTAT])
+        return add_stats
+
+    async def test_first_import_backfills_days_before_hourly(self, api: MagicMock) -> None:
+        """Test only days that end before the hourly window (under any timezone) are used.
+
+        Hourly data starts 2026-09-30 10:00 UTC. A day stamped D could end as
+        late as D+1 14:00 UTC, so Sep 29 is excluded and Sep 1-28 are kept.
+        """
+        rows = (await self._run(api, {})).call_args.args[2]
+
+        days = [r for r in rows if r["start"].hour == 12 and r["start"].day < 30]
+        assert [r["start"].day for r in days] == list(range(1, 29))
+        hourly = rows[len(days) :]
+        assert [r["start"].hour for r in hourly] == [10, 11, 12]
+        assert [r["start"].day for r in hourly] == [30, 30, 30]
+        # Running sum continues from the backfilled days into the hourly rows
+        assert days[-1]["sum"] == pytest.approx(28.0)
+        assert hourly[0]["sum"] == pytest.approx(28.264)
+
+    async def test_no_backfill_once_history_exists(self, api: MagicMock) -> None:
+        """Test later imports don't fetch daily history or insert rows before existing ones."""
+        last_start = datetime(2026, 9, 30, 11, tzinfo=UTC).timestamp()
+        last = {"schluterditraheat:energy_aa11": [{"start": last_start, "sum": 5.1, "state": 0.1}]}
+
+        rows = (await self._run(api, last)).call_args.args[2]
+
+        assert [r["start"].hour for r in rows] == [11, 12]
+        granularities = [call.args[1] for call in api.get_consumption_history.await_args_list]
+        assert granularities == ["hourly"]
+
+    async def test_daily_failure_still_imports_hourly(self, api: MagicMock) -> None:
+        """Test a daily-history error only skips the backfill."""
+        from custom_components.schluterditraheat.api import SchluterApiError
+
+        async def history(device_id: int, granularity: str) -> dict:
+            if granularity == "daily":
+                raise SchluterApiError("not available")
+            return HISTORY
+
+        api.get_consumption_history = AsyncMock(side_effect=history)
+
+        rows = (await self._run(api, {})).call_args.args[2]
+
+        assert [(r["start"].day, r["start"].hour) for r in rows] == [(30, 10), (30, 11), (30, 12)]

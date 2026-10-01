@@ -15,7 +15,7 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 - **Climate entity** — control temperature and mode (Auto, Heat/Manual, Off) per thermostat
 - **Heating output sensor** — track heating output percentage with history graphs and long-term statistics
 - **Power sensor** — instantaneous power draw (watts) of the connected heating load
-- **Energy dashboard** — hourly energy consumption imported into long-term statistics for use in the Home Assistant Energy dashboard
+- **Energy dashboard** — energy consumption imported into long-term statistics, backfilled with about a month of history on first setup, plus the electricity price from the Schluter app for cost tracking
 - **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
 - **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
 - **Device metadata** — model, software and hardware version, and serial number on the device page
@@ -56,12 +56,15 @@ Each thermostat creates the following entities, grouped under a single device:
 | GFCI Status | Binary Sensor | Ground fault detection (problem device class) |
 | Refresh | Button | Force an immediate poll of the cloud (see below) |
 | Wi-Fi Signal | Sensor | Signal strength in dBm (diagnostic) |
+| Electricity price | Sensor | Price per kWh set for the location in the Schluter app, on a separate device for the location. Only created when a price is set. |
 
 The device page also shows the model, software version, hardware version and serial number reported by the thermostat.
 
 The web app renders the same Wi-Fi reading as a five-level scale (amazing, very good, okay, weak, very weak). The API returns the underlying dBm value, which is what this integration exposes; use a template sensor if you want the bucketed wording.
 
-In addition, each thermostat's hourly energy consumption is imported into Home Assistant's long-term statistics (as an external statistic, in kWh) so it can be added to the **Energy dashboard**. The statistic refreshes hourly. On first setup, the roughly 24 hours of hourly history the cloud still holds is imported, so the dashboard is not starting from empty — but this is a short rolling window, not a full history: energy usage from before you installed the integration is not available.
+In addition, each thermostat's hourly energy consumption is imported into Home Assistant's long-term statistics (as an external statistic, in kWh) so it can be added to the **Energy dashboard**. The statistic refreshes hourly. On first setup it's backfilled from what the cloud still holds: about the last two days hour by hour, and roughly the month before that as one value per day. Older usage isn't available. The day where the daily and hourly history meet may be left out, so energy is never counted twice. Installs that already have this statistic aren't backfilled, because inserting older rows would corrupt the existing totals.
+
+To show cost, open **Settings → Dashboards → Energy**, edit the thermostat's consumption entry, and choose **Use an entity with current price** with the **Electricity price** sensor. The price is the one set for your home in the Schluter app.
 
 > **Note:** The thermostat reports energy per hour, not a continuously increasing meter reading, so energy appears as an Energy-dashboard statistic rather than a regular sensor entity. Add it via **Settings → Dashboards → Energy → Add consumption**, where it is listed as `Schluter DITRA-HEAT` energy for each thermostat.
 

@@ -473,6 +473,9 @@ class SchluterApi:
                     "name": device.get("name", f"Thermostat {device_id}"),
                     "location_id": location_id,
                     "location_name": location_name,
+                    # Price per kWh configured for the location in the Schluter
+                    # app; 0 or missing when the user hasn't set one.
+                    "electricity_price": self._parse_number(location.get("kwhCost")),
                     "group_id": group_id,
                     "group_name": group_name,
                     "sku": device.get("sku"),

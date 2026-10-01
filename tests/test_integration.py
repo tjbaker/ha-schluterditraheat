@@ -49,6 +49,7 @@ EXPECTED_ENTITIES = {
     "sensor.foyer_power": "a1b2c3d4e5f60718_power",
     "sensor.foyer_wi_fi_signal": "a1b2c3d4e5f60718_wifi_signal",
     "button.foyer_refresh": "a1b2c3d4e5f60718_refresh",
+    "sensor.home_electricity_price": "location_245001_electricity_price",
 }
 
 
@@ -94,12 +95,17 @@ class TestRegistry:
         init_integration: MockConfigEntry,
         snapshot: SnapshotAssertion,
     ) -> None:
-        """Test the thermostat registers as one device with its metadata."""
-        devices = dr.async_entries_for_config_entry(dr.async_get(hass), init_integration.entry_id)
+        """Test the thermostat and its location register as devices with their metadata."""
+        devices = sorted(
+            dr.async_entries_for_config_entry(dr.async_get(hass), init_integration.entry_id),
+            key=lambda d: sorted(d.identifiers),
+        )
 
-        assert len(devices) == 1
-        assert devices[0].identifiers == {(DOMAIN, "a1b2c3d4e5f60718")}
-        assert devices[0] == snapshot
+        assert [d.identifiers for d in devices] == [
+            {(DOMAIN, "a1b2c3d4e5f60718")},
+            {(DOMAIN, "location_245001")},
+        ]
+        assert devices == snapshot
 
 
 class TestRecordedPayload:
@@ -117,8 +123,13 @@ class TestRecordedPayload:
         assert hass.states.get("sensor.foyer_wi_fi_signal").state == str(recorded["wifiRssi"])
         assert hass.states.get("sensor.foyer_heating_output").state == "0"
         assert hass.states.get("binary_sensor.foyer_gfci_status").state == "off"
+        price = hass.states.get("sensor.home_electricity_price")
+        assert price.state == str(load_fixture("locations.json")[0]["kwhCost"])
+        assert price.attributes["unit_of_measurement"] == f"{hass.config.currency}/kWh"
 
-        (device,) = dr.async_entries_for_config_entry(dr.async_get(hass), init_integration.entry_id)
+        device = dr.async_get(hass).async_get_device_by_identifier(
+            (DOMAIN, "a1b2c3d4e5f60718"), init_integration.entry_id
+        )
         assert device.model == "DITRA-HEAT-E-RS1"
         assert device.sw_version == "3.7.10"
         assert device.hw_version == "1"
