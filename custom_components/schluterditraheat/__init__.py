@@ -135,8 +135,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # transient, so ask HA to retry setup later rather than failing hard.
         raise ConfigEntryNotReady(f"Schluter API rate limited during setup: {err}") from err
     except SchluterConnectionError as err:
-        _LOGGER.error("Failed to connect to Schluter API: %s", err)
-        return False
+        # Network or cloud outage, often just Home Assistant starting before
+        # the network is up: retry rather than failing until a manual reload.
+        raise ConfigEntryNotReady(f"Unable to reach the Schluter API: {err}") from err
+    except SchluterApiError as err:
+        raise ConfigEntryNotReady(f"Unexpected response from the Schluter API: {err}") from err
 
     # Create coordinator
     coordinator = SchluterDataUpdateCoordinator(hass, api)

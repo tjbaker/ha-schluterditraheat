@@ -27,10 +27,7 @@ STATIC = {40001: {"device_id": 40001, "identifier": "aa11bb22", "name": "Floor"}
 DYNAMIC = {40001: {"mode": "auto", "heating_percent": 0, "current_temperature": 21.0}}
 
 
-@pytest.fixture(autouse=True)
-def _recorder_loaded(hass: HomeAssistant) -> None:
-    """Satisfy the recorder dependency; the energy import is patched out."""
-    hass.config.components.add("recorder")
+pytestmark = pytest.mark.usefixtures("recorder_loaded")
 
 
 @pytest.fixture
@@ -193,3 +190,20 @@ async def test_credential_check_logs_out(hass: HomeAssistant) -> None:
 
     assert info["account_id"] == 10001
     api.logout.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    "error",
+    [SchluterConnectionError("network unreachable"), SchluterApiError("missing session id")],
+)
+async def test_login_failure_retries_setup(
+    hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock, error: Exception
+) -> None:
+    """Test an outage at startup retries instead of failing until a manual reload."""
+    patched_api.authenticate.side_effect = error
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert _reauth_flows(hass) == []

@@ -39,6 +39,16 @@ def auto_enable_custom_integrations(enable_custom_integrations):
     yield
 
 
+@pytest.fixture
+def recorder_loaded(hass):
+    """Satisfy the integration's recorder dependency without a database.
+
+    For tests that set up or reload a config entry with the energy import
+    patched out; tests of the statistics import itself mock the recorder.
+    """
+    hass.config.components.add("recorder")
+
+
 @dataclass
 class _MockRoute:
     """A single registered response, consumed by the first matching request."""
