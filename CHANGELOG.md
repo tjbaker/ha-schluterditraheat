@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.2.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.1.0...2.2.0) (2026-10-01)
+
+### Upgrade notes
+
+* **The thermostat entity no longer exposes `identifier`, `location_name` or `device_id` attributes.** They leaked the serial number and often a street address into history. The serial number is still on the device page. Templates reading these attributes will now get nothing ([#18](https://github.com/tjbaker/ha-schluterditraheat/issues/18)).
+* **Choosing the *None* preset no longer turns heating on.** It used to switch an Off or Auto thermostat to Heat. Now it only clears an active preset ([#21](https://github.com/tjbaker/ha-schluterditraheat/issues/21)).
+* **A new device appears for each home (location)**, holding its Home/Away setting and electricity price.
+* Entity names now follow Home Assistant's language. Existing entity IDs don't change.
+
+### Features
+
+* **Away preset** on the thermostat, using the away setpoint from the Schluter app ([#21](https://github.com/tjbaker/ha-schluterditraheat/issues/21))
+* **Home/Away for the whole home:** switch every thermostat at a location at once, like the Schluter app ([#22](https://github.com/tjbaker/ha-schluterditraheat/issues/22))
+* **Thermostat settings, named as in the Schluter app:** Keypad, Backlight, Early start and Away setpoint ([#20](https://github.com/tjbaker/ha-schluterditraheat/issues/20), [#24](https://github.com/tjbaker/ha-schluterditraheat/issues/24))
+* **Fault sensor** that turns on when the thermostat reports a fault code ([#22](https://github.com/tjbaker/ha-schluterditraheat/issues/22))
+* **Energy dashboard:** about a month of history on first setup, and an **Electricity price** sensor from the Schluter app for cost tracking ([#19](https://github.com/tjbaker/ha-schluterditraheat/issues/19))
+* **Repairs notice** when the Schluter account has too many active sessions ([#17](https://github.com/tjbaker/ha-schluterditraheat/issues/17))
+* **Spanish and French** translations ([#23](https://github.com/tjbaker/ha-schluterditraheat/issues/23))
+
+### Bug Fixes
+
+* Preset changes rejected by Schluter now show a clear error instead of an unexpected one ([#18](https://github.com/tjbaker/ha-schluterditraheat/issues/18))
+
 ## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.0.0...2.1.0) (2026-10-01)
 
 ### Features
