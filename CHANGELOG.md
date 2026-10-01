@@ -2,14 +2,16 @@
 
 ## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v2.0.0...2.1.0) (2026-10-01)
 
+### Features
 
-* release 2.1.0 ([bcc9987](https://github.com/tjbaker/ha-schluterditraheat/commit/bcc9987c91223cf59a405d3275d292d9e210178b))
-
+* **Reconfigure:** update the saved Schluter password from **Settings → Devices & Services → Schluter DITRA-HEAT → ⋮ → Reconfigure**, without removing the integration ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13))
 
 ### Bug Fixes
 
-* setup retry, config flow translations, and a reconfigure flow ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13)) ([6cff387](https://github.com/tjbaker/ha-schluterditraheat/commit/6cff38740bd3900ce296d43e122160142c678ead))
-* use the thermostat's own setpoint limits ([#8](https://github.com/tjbaker/ha-schluterditraheat/issues/8)) ([7b18feb](https://github.com/tjbaker/ha-schluterditraheat/commit/7b18feb3e6febe895fe105fa9e56459cd4ac4430))
+* **The setup dialog shows its text again:** it had no title, field labels or readable error messages because the integration shipped without translations ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13))
+* **Setup retries after an outage:** if Schluter's cloud or your network is unreachable when Home Assistant starts, the integration retries automatically instead of staying failed until reloaded ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13))
+* **The setpoint range comes from the thermostat:** setpoints above 32 °C now work on thermostats configured for warmer floors (upstream [#7](https://github.com/KevinFarrell/ha-schluterditraheat/issues/7)) ([#8](https://github.com/tjbaker/ha-schluterditraheat/issues/8))
+* Re-entering your password names the account it's for, and adding an account that's already set up no longer signs in to Schluter ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13))
 
 ## [2.0.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v1.1.0...v2.0.0) (2026-10-01)
 
