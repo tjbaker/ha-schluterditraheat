@@ -19,10 +19,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .api import SchluterApiError
 from .const import (
-    ATTR_DEVICE_ID,
     ATTR_GROUP_NAME,
-    ATTR_IDENTIFIER,
-    ATTR_LOCATION_NAME,
     MAX_TEMP_C,
     MIN_TEMP_C,
     MODE_AUTO,
@@ -153,12 +150,14 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return additional state attributes."""
-        thermostat = self.coordinator.data.get(self._device_id, {})
+        """Return additional state attributes.
+
+        State attributes are written to recorder history and shown wherever the
+        state is shared, so they must not carry identifying data: the serial
+        number is on the device page, and location names are often addresses.
+        """
+        thermostat = self._thermostat
         return {
-            ATTR_DEVICE_ID: self._device_id,
-            ATTR_IDENTIFIER: thermostat.get("identifier"),
-            ATTR_LOCATION_NAME: thermostat.get("location_name"),
             ATTR_GROUP_NAME: thermostat.get("group_name"),
             "air_floor_mode": thermostat.get("air_floor_mode"),
         }

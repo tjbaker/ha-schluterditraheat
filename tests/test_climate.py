@@ -145,11 +145,11 @@ class TestClimateProperties:
         assert thermostat.max_temp == 32.0
 
     def test_extra_state_attributes(self, thermostat):
-        """Test extra_state_attributes contains expected keys."""
+        """Test extra_state_attributes holds only non-identifying details."""
         attrs = thermostat.extra_state_attributes
-        assert attrs["device_id"] == 40001
-        assert attrs["identifier"] == "aa11bb22cc33dd44"
-        assert attrs["location_name"] == "Test Home"
+        assert attrs == {"group_name": "Master Bath", "air_floor_mode": "floor"}
+        # The serial, location name and cloud id must not leak into state history
+        assert not {"identifier", "location_name", "device_id"} & set(attrs)
         assert attrs["group_name"] == "Master Bath"
         assert attrs["air_floor_mode"] == "floor"
         # heating_percent and gfci_status should NOT be in extra attrs
