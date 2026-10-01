@@ -39,12 +39,12 @@ class SchluterAwayTemperatureNumber(SchluterEntity, NumberEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_native_step = AWAY_TEMPERATURE_STEP
-    _attr_translation_key = "away_temperature"
+    _attr_translation_key = "away_setpoint"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the away temperature."""
         super().__init__(coordinator, device_id)
-        self._attr_unique_id = f"{self._identifier}_away_temperature"
+        self._attr_unique_id = f"{self._identifier}_away_setpoint"
 
     @property
     def native_value(self) -> float | None:
@@ -70,7 +70,7 @@ class SchluterAwayTemperatureNumber(SchluterEntity, NumberEntity):
                 self._device_id, "roomSetpointAway", value
             )
         except SchluterApiError as err:
-            raise HomeAssistantError(f"Failed to set the away temperature: {err}") from err
+            raise HomeAssistantError(f"Failed to set the away setpoint: {err}") from err
 
         if self._device_id in self.coordinator.data:
             self.coordinator.data[self._device_id]["away_temperature"] = value

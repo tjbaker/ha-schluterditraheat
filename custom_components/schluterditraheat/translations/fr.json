@@ -60,24 +60,31 @@
       }
     },
     "number": {
-      "away_temperature": {
-        "name": "Température en absence"
+      "away_setpoint": {
+        "name": "Consigne en absence"
       }
     },
     "select": {
+      "backlight": {
+        "name": "Rétroéclairage",
+        "state": {
+          "always_on": "Toujours allumé",
+          "bedroom": "Chambre",
+          "off": "Éteint"
+        }
+      },
+      "keypad": {
+        "name": "Clavier",
+        "state": {
+          "unlocked": "Déverrouillé",
+          "locked": "Verrouillé"
+        }
+      },
       "occupancy": {
         "name": "Occupation",
         "state": {
           "home": "À la maison",
           "away": "Absent"
-        }
-      },
-      "backlight": {
-        "name": "Rétroéclairage de l'écran",
-        "state": {
-          "always_on": "Toujours allumé",
-          "bedroom": "Chambre",
-          "off": "Éteint"
         }
       }
     },
@@ -96,9 +103,6 @@
       }
     },
     "switch": {
-      "child_lock": {
-        "name": "Verrouillage parental"
-      },
       "early_start": {
         "name": "Démarrage anticipé"
       }

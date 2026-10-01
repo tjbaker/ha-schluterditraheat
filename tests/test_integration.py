@@ -57,12 +57,12 @@ EXPECTED_ENTITIES = {
     "sensor.foyer_wi_fi_signal": "a1b2c3d4e5f60718_wifi_signal",
     "button.foyer_refresh": "a1b2c3d4e5f60718_refresh",
     "sensor.home_electricity_price": "location_245001_electricity_price",
-    "switch.foyer_child_lock": "a1b2c3d4e5f60718_child_lock",
     "switch.foyer_early_start": "a1b2c3d4e5f60718_early_start",
     "select.home_occupancy": "location_245001_occupancy",
     "binary_sensor.foyer_fault": "a1b2c3d4e5f60718_fault",
-    "select.foyer_display_backlight": "a1b2c3d4e5f60718_backlight",
-    "number.foyer_away_temperature": "a1b2c3d4e5f60718_away_temperature",
+    "select.foyer_backlight": "a1b2c3d4e5f60718_backlight",
+    "select.foyer_keypad": "a1b2c3d4e5f60718_keypad",
+    "number.foyer_away_setpoint": "a1b2c3d4e5f60718_away_setpoint",
 }
 
 
@@ -306,16 +306,11 @@ async def test_refresh_button_polls_now(
 
 
 class TestSettingSwitches:
-    """Child lock and Early start, written as the values the cloud accepts.
-
-    Values confirmed against a DITRA-HEAT-E-RS1: keyboardLock lock/unlock,
-    earlyStartCfg on/off.
-    """
+    """Early start, written as the values the cloud accepts (earlyStartCfg on/off)."""
 
     @pytest.mark.parametrize(
         ("entity_id", "attribute", "on_value", "off_value"),
         [
-            ("switch.foyer_child_lock", "keyboardLock", "lock", "unlock"),
             ("switch.foyer_early_start", "earlyStartCfg", "on", "off"),
         ],
     )
@@ -345,15 +340,15 @@ class TestSettingSwitches:
         """Test a rejected write raises a HomeAssistantError and leaves the switch off."""
         mock_cloud.fail_next("PUT", ATTRIBUTE_URL, status=500, body="server error")
 
-        with pytest.raises(HomeAssistantError, match="Child lock"):
+        with pytest.raises(HomeAssistantError, match="Early start"):
             await hass.services.async_call(
                 SWITCH_DOMAIN,
                 SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: "switch.foyer_child_lock"},
+                {ATTR_ENTITY_ID: "switch.foyer_early_start"},
                 blocking=True,
             )
 
-        assert hass.states.get("switch.foyer_child_lock").state == "off"
+        assert hass.states.get("switch.foyer_early_start").state == "off"
 
 
 LOCATION_MODE_URL = re.compile(rf"{re.escape(API_BASE_URL)}/location/{LOCATION_ID}/mode$")
@@ -443,10 +438,10 @@ class TestFaultSensor:
         assert state.attributes["error_code"] == 4
 
 
-class TestDisplayBacklight:
+class TestBacklight:
     """The display backlight, using the values an RS1 accepts (alwaysOn, bedroom, off)."""
 
-    ENTITY = "select.foyer_display_backlight"
+    ENTITY = "select.foyer_backlight"
 
     async def test_state_and_options(
         self, hass: HomeAssistant, init_integration: MockConfigEntry
@@ -486,10 +481,10 @@ class TestDisplayBacklight:
         assert hass.states.get(self.ENTITY).state == "unknown"
 
 
-class TestAwayTemperature:
+class TestAwaySetpoint:
     """The away setpoint (roomSetpointAway)."""
 
-    ENTITY = "number.foyer_away_temperature"
+    ENTITY = "number.foyer_away_setpoint"
 
     async def test_state_and_range(
         self, hass: HomeAssistant, init_integration: MockConfigEntry
@@ -541,7 +536,7 @@ class TestAwayTemperature:
         """Test a rejected write raises and keeps the previous value."""
         mock_cloud.fail_next("PUT", ATTRIBUTE_URL, status=500, body="server error")
 
-        with pytest.raises(HomeAssistantError, match="away temperature"):
+        with pytest.raises(HomeAssistantError, match="away setpoint"):
             await hass.services.async_call(
                 NUMBER_DOMAIN,
                 SERVICE_SET_VALUE,
@@ -550,3 +545,52 @@ class TestAwayTemperature:
             )
 
         assert float(hass.states.get(self.ENTITY).state) == 15
+
+
+class TestKeypad:
+    """The thermostat keypad lock, labelled as in the Schluter app (keyboardLock lock/unlock)."""
+
+    ENTITY = "select.foyer_keypad"
+
+    async def test_state_and_options(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry
+    ) -> None:
+        """Test the recorded unlock reads as unlocked, with both options."""
+        state = hass.states.get(self.ENTITY)
+        assert state.state == "unlocked"
+        assert state.attributes["options"] == ["unlocked", "locked"]
+
+    @pytest.mark.parametrize(("option", "sent"), [("locked", "lock"), ("unlocked", "unlock")])
+    async def test_select(
+        self,
+        hass: HomeAssistant,
+        init_integration: MockConfigEntry,
+        mock_cloud: MockSession,
+        option: str,
+        sent: str,
+    ) -> None:
+        """Test each option writes its keyboardLock value."""
+        await hass.services.async_call(
+            SELECT_DOMAIN,
+            SERVICE_SELECT_OPTION,
+            {ATTR_ENTITY_ID: self.ENTITY, ATTR_OPTION: option},
+            blocking=True,
+        )
+
+        assert _writes(mock_cloud) == [{"keyboardLock": sent}]
+
+    async def test_write_error(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test a rejected write raises with the entity's name and stays unlocked."""
+        mock_cloud.fail_next("PUT", ATTRIBUTE_URL, status=500, body="server error")
+
+        with pytest.raises(HomeAssistantError, match="Keypad"):
+            await hass.services.async_call(
+                SELECT_DOMAIN,
+                SERVICE_SELECT_OPTION,
+                {ATTR_ENTITY_ID: self.ENTITY, ATTR_OPTION: "locked"},
+                blocking=True,
+            )
+
+        assert hass.states.get(self.ENTITY).state == "unlocked"

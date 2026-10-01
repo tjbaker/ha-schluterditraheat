@@ -28,16 +28,6 @@ class SchluterSwitchDescription(SwitchEntityDescription):
 
 SWITCHES: tuple[SchluterSwitchDescription, ...] = (
     SchluterSwitchDescription(
-        key="child_lock",
-        translation_key="child_lock",
-        icon="mdi:lock",
-        entity_category=EntityCategory.CONFIG,
-        data_key="child_lock",
-        attribute="keyboardLock",
-        on_value="lock",
-        off_value="unlock",
-    ),
-    SchluterSwitchDescription(
         key="early_start",
         translation_key="early_start",
         icon="mdi:clock-start",
@@ -66,7 +56,7 @@ async def async_setup_entry(
 
 
 class SchluterSettingSwitch(SchluterEntity, SwitchEntity):
-    """An on/off thermostat setting (child lock, early start)."""
+    """An on/off thermostat setting (early start)."""
 
     entity_description: SchluterSwitchDescription
 

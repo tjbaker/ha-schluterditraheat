@@ -60,24 +60,31 @@
       }
     },
     "number": {
-      "away_temperature": {
-        "name": "Temperatura fuera de casa"
+      "away_setpoint": {
+        "name": "Consigna fuera de casa"
       }
     },
     "select": {
+      "backlight": {
+        "name": "Retroiluminación",
+        "state": {
+          "always_on": "Siempre encendida",
+          "bedroom": "Dormitorio",
+          "off": "Apagada"
+        }
+      },
+      "keypad": {
+        "name": "Teclado",
+        "state": {
+          "unlocked": "Desbloqueado",
+          "locked": "Bloqueado"
+        }
+      },
       "occupancy": {
         "name": "Ocupación",
         "state": {
           "home": "En casa",
           "away": "Fuera de casa"
-        }
-      },
-      "backlight": {
-        "name": "Retroiluminación de la pantalla",
-        "state": {
-          "always_on": "Siempre encendida",
-          "bedroom": "Dormitorio",
-          "off": "Apagada"
         }
       }
     },
@@ -96,9 +103,6 @@
       }
     },
     "switch": {
-      "child_lock": {
-        "name": "Bloqueo infantil"
-      },
       "early_start": {
         "name": "Inicio anticipado"
       }

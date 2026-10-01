@@ -87,5 +87,8 @@ OCCUPANCY_AWAY = "away"
 # option Home Assistant shows. onDemand, sensing and auto are rejected.
 BACKLIGHT_OPTIONS = {"always_on": "alwaysOn", "bedroom": "bedroom", "off": "off"}
 
+# Keypad (keyboardLock) values, as the Schluter app labels them
+KEYPAD_OPTIONS = {"unlocked": "unlock", "locked": "lock"}
+
 # Away setpoint step; the thermostat accepts values within its setpoint range
 AWAY_TEMPERATURE_STEP = 0.5

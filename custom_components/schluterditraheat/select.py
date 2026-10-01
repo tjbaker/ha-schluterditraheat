@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from homeassistant.components.select import SelectEntity
+from dataclasses import dataclass
+
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -10,7 +12,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .api import SchluterApiError
-from .const import BACKLIGHT_OPTIONS, OCCUPANCY_AWAY, OCCUPANCY_HOME
+from .const import BACKLIGHT_OPTIONS, KEYPAD_OPTIONS, OCCUPANCY_AWAY, OCCUPANCY_HOME
 from .entity import SchluterEntity, SchluterLocationEntity
 
 
@@ -19,7 +21,7 @@ async def async_setup_entry(
     entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up location Home/Away and per-thermostat backlight selects."""
+    """Set up location Home/Away and per-thermostat setting selects."""
     coordinator = entry.runtime_data
     locations = {
         thermostat["location_id"]
@@ -30,9 +32,10 @@ async def async_setup_entry(
         SchluterLocationModeSelect(coordinator, location_id) for location_id in sorted(locations)
     ]
     entities.extend(
-        SchluterBacklightSelect(coordinator, device_id)
+        SchluterSettingSelect(coordinator, device_id, description)
         for device_id, thermostat in coordinator.data.items()
-        if thermostat.get("backlight") is not None
+        for description in SETTING_SELECTS
+        if thermostat.get(description.data_key) is not None
     )
     async_add_entities(entities)
 
@@ -71,36 +74,76 @@ class SchluterLocationModeSelect(SchluterLocationEntity, SelectEntity):
         await self.coordinator.async_request_refresh()
 
 
-class SchluterBacklightSelect(SchluterEntity, SelectEntity):
-    """The thermostat display's backlight behavior."""
+@dataclass(frozen=True, kw_only=True)
+class SchluterSettingSelectDescription(SelectEntityDescription):
+    """A thermostat setting written as one attribute, with option -> API value."""
 
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:brightness-6"
-    _attr_options = list(BACKLIGHT_OPTIONS)
-    _attr_translation_key = "backlight"
+    data_key: str
+    attribute: str
+    values: dict[str, str]
 
-    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
-        """Initialize the backlight select."""
+
+SETTING_SELECTS: tuple[SchluterSettingSelectDescription, ...] = (
+    SchluterSettingSelectDescription(
+        key="backlight",
+        translation_key="backlight",
+        icon="mdi:brightness-6",
+        entity_category=EntityCategory.CONFIG,
+        data_key="backlight",
+        attribute="backlightAutoDim",
+        values=BACKLIGHT_OPTIONS,
+    ),
+    SchluterSettingSelectDescription(
+        key="keypad",
+        translation_key="keypad",
+        icon="mdi:dialpad",
+        entity_category=EntityCategory.CONFIG,
+        data_key="keypad",
+        attribute="keyboardLock",
+        values=KEYPAD_OPTIONS,
+    ),
+)
+
+
+class SchluterSettingSelect(SchluterEntity, SelectEntity):
+    """A multiple-choice thermostat setting (backlight, keypad)."""
+
+    entity_description: SchluterSettingSelectDescription
+
+    def __init__(
+        self,
+        coordinator: SchluterDataUpdateCoordinator,
+        device_id: int,
+        description: SchluterSettingSelectDescription,
+    ) -> None:
+        """Initialize the select."""
         super().__init__(coordinator, device_id)
-        self._attr_unique_id = f"{self._identifier}_backlight"
+        self.entity_description = description
+        self._attr_unique_id = f"{self._identifier}_{description.key}"
+        self._attr_options = list(description.values)
 
     @property
     def current_option(self) -> str | None:
         """Return the option for the reported value, or None if it's not one we know."""
-        reported = self._thermostat.get("backlight")
-        return next((opt for opt, value in BACKLIGHT_OPTIONS.items() if value == reported), None)
+        reported = self._thermostat.get(self.entity_description.data_key)
+        return next(
+            (opt for opt, value in self.entity_description.values.items() if value == reported),
+            None,
+        )
 
     async def async_select_option(self, option: str) -> None:
-        """Change the backlight behavior."""
+        """Change the setting."""
+        description = self.entity_description
+        value = description.values[option]
         try:
             await self.coordinator.api.set_device_attribute(
-                self._device_id, "backlightAutoDim", BACKLIGHT_OPTIONS[option]
+                self._device_id, description.attribute, value
             )
         except SchluterApiError as err:
-            raise HomeAssistantError(f"Failed to set the display backlight: {err}") from err
+            raise HomeAssistantError(f"Failed to change {self.name}: {err}") from err
 
         if self._device_id in self.coordinator.data:
-            self.coordinator.data[self._device_id]["backlight"] = BACKLIGHT_OPTIONS[option]
+            self.coordinator.data[self._device_id][description.data_key] = value
             self.async_write_ha_state()
 
         await self.coordinator.async_request_refresh()

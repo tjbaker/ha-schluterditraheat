@@ -539,7 +539,7 @@ class SchluterApi:
                 "min_temp": self._parse_number(raw.get("roomSetpointMin")),
                 "max_temp": self._parse_number(raw.get("roomSetpointMax")),
                 "occupancy_mode": raw.get("occupancyMode"),
-                "child_lock": self._parse_switch(raw.get("keyboardLock"), "lock", "unlock"),
+                "keypad": raw.get("keyboardLock"),
                 "early_start": self._parse_switch(raw.get("earlyStartCfg"), "on", "off"),
                 "error_code": self._parse_error_code(raw.get("errorCodeSet1")),
                 "backlight": raw.get("backlightAutoDim"),
