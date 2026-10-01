@@ -214,7 +214,10 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
             _LOGGER.error("Unsupported preset mode: %s", preset_mode)
             return
 
-        await self.coordinator.api.set_mode(self._device_id, mode)
+        try:
+            await self.coordinator.api.set_mode(self._device_id, mode)
+        except SchluterApiError as err:
+            raise HomeAssistantError(f"Failed to set preset mode: {err}") from err
 
         if self._device_id in self.coordinator.data:
             self.coordinator.data[self._device_id]["mode"] = mode
