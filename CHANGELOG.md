@@ -2,27 +2,26 @@
 
 ## [2.2.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.1.0...2.2.0) (2026-10-01)
 
+### Upgrade notes
+
+* **The thermostat entity no longer exposes `identifier`, `location_name` or `device_id` attributes.** They leaked the serial number and often a street address into history. The serial number is still on the device page. Templates reading these attributes will now get nothing ([#18](https://github.com/tjbaker/ha-schluterditraheat/issues/18)).
+* **Choosing the *None* preset no longer turns heating on.** It used to switch an Off or Auto thermostat to Heat. Now it only clears an active preset ([#21](https://github.com/tjbaker/ha-schluterditraheat/issues/21)).
+* **A new device appears for each home (location)**, holding its Home/Away setting and electricity price.
+* Entity names now follow Home Assistant's language. Existing entity IDs don't change.
 
 ### Features
 
-* add an Away preset ([#21](https://github.com/tjbaker/ha-schluterditraheat/issues/21)) ([9d3e457](https://github.com/tjbaker/ha-schluterditraheat/commit/9d3e45780f31a5f73fa1aa6b5bdff302f934baf6))
-* add Child lock and Early start switches ([#20](https://github.com/tjbaker/ha-schluterditraheat/issues/20)) ([5eaa73b](https://github.com/tjbaker/ha-schluterditraheat/commit/5eaa73b8ade73761d4136f15decc1e3e10734604))
-* add Keypad, Backlight and Away setpoint settings ([#24](https://github.com/tjbaker/ha-schluterditraheat/issues/24)) ([6888230](https://github.com/tjbaker/ha-schluterditraheat/commit/688823054c457d88c6f37dcdab590c94a5171270))
-* add Spanish and French translations ([a0e284d](https://github.com/tjbaker/ha-schluterditraheat/commit/a0e284d71ab9e25fdf37dd56e2e766536027f736))
-* add whole-home Home/Away and a thermostat fault sensor ([#22](https://github.com/tjbaker/ha-schluterditraheat/issues/22)) ([0e1dcfc](https://github.com/tjbaker/ha-schluterditraheat/commit/0e1dcfc1221c992ccacea6395c32814454657489))
-* backfill a month of energy history and add an electricity price sensor ([#19](https://github.com/tjbaker/ha-schluterditraheat/issues/19)) ([eb9751e](https://github.com/tjbaker/ha-schluterditraheat/commit/eb9751e2a78f59af8f9cff0fe4bb5699874b7cac))
-* show a repair issue while the account is at its session cap ([#17](https://github.com/tjbaker/ha-schluterditraheat/issues/17)) ([ee3287b](https://github.com/tjbaker/ha-schluterditraheat/commit/ee3287b3e4f3dbb9d198a076c47e03668fc9698b))
-
+* **Away preset** on the thermostat, using the away setpoint from the Schluter app ([#21](https://github.com/tjbaker/ha-schluterditraheat/issues/21))
+* **Home/Away for the whole home:** switch every thermostat at a location at once, like the Schluter app ([#22](https://github.com/tjbaker/ha-schluterditraheat/issues/22))
+* **Thermostat settings, named as in the Schluter app:** Keypad, Backlight, Early start and Away setpoint ([#20](https://github.com/tjbaker/ha-schluterditraheat/issues/20), [#24](https://github.com/tjbaker/ha-schluterditraheat/issues/24))
+* **Fault sensor** that turns on when the thermostat reports a fault code ([#22](https://github.com/tjbaker/ha-schluterditraheat/issues/22))
+* **Energy dashboard:** about a month of history on first setup, and an **Electricity price** sensor from the Schluter app for cost tracking ([#19](https://github.com/tjbaker/ha-schluterditraheat/issues/19))
+* **Repairs notice** when the Schluter account has too many active sessions ([#17](https://github.com/tjbaker/ha-schluterditraheat/issues/17))
+* **Spanish and French** translations ([#23](https://github.com/tjbaker/ha-schluterditraheat/issues/23))
 
 ### Bug Fixes
 
-* report preset-mode failures as Home Assistant errors ([4412f58](https://github.com/tjbaker/ha-schluterditraheat/commit/4412f584ee49edefbb96b87215aa473dfead8c95))
-* stop exposing the serial number and location in climate attributes ([77aa425](https://github.com/tjbaker/ha-schluterditraheat/commit/77aa425e039c61c11b697c5d4a18e0f92c5f7865))
-
-
-### Code Refactoring
-
-* keep the coordinator in entry.runtime_data ([#15](https://github.com/tjbaker/ha-schluterditraheat/issues/15)) ([30b3d32](https://github.com/tjbaker/ha-schluterditraheat/commit/30b3d320a123909041f59a6ed8cffe56d91ae430))
+* Preset changes rejected by Schluter now show a clear error instead of an unexpected one ([#18](https://github.com/tjbaker/ha-schluterditraheat/issues/18))
 
 ## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.0.0...2.1.0) (2026-10-01)
 
