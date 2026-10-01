@@ -2,11 +2,13 @@
 
 A custom [Home Assistant](https://www.home-assistant.io/) integration for [Schluter DITRA-HEAT](https://www.schluter.com/schluter-us/en_US/ditra-heat) WiFi floor heating thermostats that use the [schluterditraheat.com](https://schluterditraheat.com) cloud service.
 
+This is a maintained fork of [KevinFarrell/ha-schluterditraheat](https://github.com/KevinFarrell/ha-schluterditraheat), which it extends with fixes and features contributed upstream. It keeps the same integration domain and entity IDs, so existing installs can switch over without reconfiguring.
+
 ## Compatibility
 
 Schluter has multiple apps and cloud platforms for different product lines. This integration works with thermostats managed through the **Schluter Smart Thermostat** app and [schluterditraheat.com](https://schluterditraheat.com) — **not** the older Schluter DITRA-HEAT app or other Schluter platforms. If you can log in at [schluterditraheat.com](https://schluterditraheat.com) with your credentials, this integration should work for you.
 
-Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same cloud service should work but have not been verified. If you encounter issues with a different model, please [open an issue](https://github.com/KevinFarrell/ha-schluterditraheat/issues).
+Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same cloud service should work but have not been verified. If you encounter issues with a different model, please [open an issue](https://github.com/tjbaker/ha-schluterditraheat/issues).
 
 ## Features
 
@@ -20,7 +22,7 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 
 1. Open HACS in Home Assistant
 2. Click the three dots menu → **Custom repositories**
-3. Add `https://github.com/KevinFarrell/ha-schluterditraheat` with category **Integration**
+3. Add `https://github.com/tjbaker/ha-schluterditraheat` with category **Integration**
 4. Search for "Schluter DITRA-HEAT" and install
 5. Restart Home Assistant
 6. Go to **Settings → Devices & Services → Add Integration** and search for "Schluter DITRA-HEAT"
@@ -64,3 +66,7 @@ This project is not affiliated with, endorsed by, or associated with Schluter Sy
 
 - Home Assistant 2024.1 or later
 - A Schluter DITRA-HEAT WiFi thermostat with a [schluterditraheat.com](https://schluterditraheat.com) account
+
+## Credits
+
+Originally written by [@KevinFarrell](https://github.com/KevinFarrell). Thanks also to the contributors whose upstream pull requests are included here.
