@@ -5,6 +5,7 @@ pytest-homeassistant-custom-component. HTTP traffic is faked with a small
 in-process session (see ``MockSession``) because aioresponses is not
 compatible with the aiohttp release Home Assistant ships.
 """
+
 from __future__ import annotations
 
 import json

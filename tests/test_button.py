@@ -1,4 +1,5 @@
 """Unit tests for the Schluter refresh button."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -6,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.schluterditraheat.button import SchluterRefreshButton
-
 
 MOCK_THERMOSTAT = {
     "device_id": 40001,

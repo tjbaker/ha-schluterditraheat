@@ -1,4 +1,5 @@
 """Button platform for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import logging
@@ -23,15 +24,12 @@ async def async_setup_entry(
     """Set up Schluter button entities from a config entry."""
     coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    async_add_entities([
-        SchluterRefreshButton(coordinator, device_id)
-        for device_id in coordinator.data
-    ])
+    async_add_entities(
+        [SchluterRefreshButton(coordinator, device_id) for device_id in coordinator.data]
+    )
 
 
-class SchluterRefreshButton(
-    CoordinatorEntity[SchluterDataUpdateCoordinator], ButtonEntity
-):
+class SchluterRefreshButton(CoordinatorEntity[SchluterDataUpdateCoordinator], ButtonEntity):
     """Button that forces an immediate poll of the Schluter cloud.
 
     The scheduled poll runs at SCAN_INTERVAL (300s, the minimum cadence Sinope
@@ -43,9 +41,7 @@ class SchluterRefreshButton(
     _attr_has_entity_name = True
     _attr_name = "Refresh"
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the refresh button."""
         super().__init__(coordinator)
         self._device_id = device_id

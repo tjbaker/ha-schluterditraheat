@@ -1,4 +1,5 @@
 """Sensor platform for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import logging
@@ -44,9 +45,7 @@ async def async_setup_entry(
         if "rssi" in thermostat:
             entities.append(SchluterWifiSignalSensor(coordinator, device_id))
         else:
-            _LOGGER.debug(
-                "Device %s reported no Wi-Fi signal; skipping the sensor", device_id
-            )
+            _LOGGER.debug("Device %s reported no Wi-Fi signal; skipping the sensor", device_id)
 
     async_add_entities(entities)
 
@@ -59,9 +58,7 @@ class SchluterHeatingOutputSensor(SchluterEntity, SensorEntity):
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_name = "Heating Output"
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the heating output sensor."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = f"{self._identifier}_heating_output"
@@ -86,9 +83,7 @@ class SchluterWifiSignalSensor(SchluterEntity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_name = "Wi-Fi Signal"
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the Wi-Fi signal sensor."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = f"{self._identifier}_wifi_signal"
@@ -121,9 +116,7 @@ class SchluterPowerSensor(SchluterEntity, SensorEntity):
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_name = "Power"
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the power sensor."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = f"{self._identifier}_power"

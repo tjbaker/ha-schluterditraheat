@@ -10,6 +10,7 @@ buckets, so an import can only ever recover that much history: hours missed
 while Home Assistant was down for longer than the window are gone for good and
 are simply absent from the cumulative sum.
 """
+
 from __future__ import annotations
 
 import logging
@@ -72,11 +73,7 @@ async def async_update_energy_statistics(
         if device_id is None or not identifier:
             continue
 
-        name = (
-            thermostat.get("group_name")
-            or thermostat.get("name")
-            or f"Thermostat {device_id}"
-        )
+        name = thermostat.get("group_name") or thermostat.get("name") or f"Thermostat {device_id}"
         statistic_id = statistic_id_for(identifier)
 
         try:

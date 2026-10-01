@@ -1,4 +1,5 @@
 """The Schluter DITRA-HEAT integration."""
+
 from __future__ import annotations
 
 import logging
@@ -81,17 +82,14 @@ async def async_import_energy(
         )
         return
     try:
-        await async_update_energy_statistics(
-            hass, api, list(coordinator.data.values())
-        )
+        await async_update_energy_statistics(hass, api, list(coordinator.data.values()))
     except SchluterDailyLimitError as err:
         # The energy import can be the first caller to hit the cap. Pause the
         # coordinator too, so the whole integration backs off together rather
         # than each timer discovering the cap independently.
         seconds = coordinator.note_daily_limit()
         _LOGGER.warning(
-            "Daily API request limit reached during energy import; "
-            "pausing polling ~%ss: %s",
+            "Daily API request limit reached during energy import; " "pausing polling ~%ss: %s",
             round(seconds),
             err,
         )
@@ -117,9 +115,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except SchluterRateLimitError as err:
         # Login rate/daily limited (also covers SchluterDailyLimitError) —
         # transient, so ask HA to retry setup later rather than failing hard.
-        raise ConfigEntryNotReady(
-            f"Schluter API rate limited during setup: {err}"
-        ) from err
+        raise ConfigEntryNotReady(f"Schluter API rate limited during setup: {err}") from err
     except SchluterConnectionError as err:
         _LOGGER.error("Failed to connect to Schluter API: %s", err)
         return False
@@ -204,9 +200,7 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
         Single source of truth: an explicit pause (rate-limit backoff or daily
         cap) wins, then a budget-derived defer, else the normal interval.
         """
-        self.update_interval = (
-            self._backoff_interval or self._throttle_interval or SCAN_INTERVAL
-        )
+        self.update_interval = self._backoff_interval or self._throttle_interval or SCAN_INTERVAL
 
     def _apply_rate_limit_backoff(self) -> None:
         """Grow the explicit backoff interval due to rate limiting."""
@@ -318,16 +312,13 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
             return result
 
         except SchluterAuthenticationError as err:
-            raise ConfigEntryAuthFailed(
-                f"Authentication failed: {err}"
-            ) from err
+            raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
         except SchluterDailyLimitError as err:
             # Daily request cap hit. note_daily_limit() pauses polling and flags
             # the cap so the energy import pauses with us.
             seconds = self.note_daily_limit()
             raise UpdateFailed(
-                f"Daily API request limit reached; pausing polling "
-                f"~{round(seconds)}s: {err}"
+                f"Daily API request limit reached; pausing polling " f"~{round(seconds)}s: {err}"
             ) from err
         except SchluterRateLimitError as err:
             self._apply_rate_limit_backoff()
@@ -336,8 +327,6 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
                 f"Rate limited by API, next poll in {self._backoff_interval}: {err}"
             ) from err
         except SchluterConnectionError as err:
-            raise UpdateFailed(
-                f"Error communicating with API: {err}"
-            ) from err
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
         except SchluterApiError as err:
             raise UpdateFailed(f"Unexpected API error: {err}") from err

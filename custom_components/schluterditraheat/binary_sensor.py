@@ -1,4 +1,5 @@
 """Binary sensor platform for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import logging
@@ -26,10 +27,9 @@ async def async_setup_entry(
     """Set up Schluter binary sensor entities from a config entry."""
     coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    async_add_entities([
-        SchluterGfciBinarySensor(coordinator, device_id)
-        for device_id in coordinator.data
-    ])
+    async_add_entities(
+        [SchluterGfciBinarySensor(coordinator, device_id) for device_id in coordinator.data]
+    )
 
 
 class SchluterGfciBinarySensor(SchluterEntity, BinarySensorEntity):
@@ -38,9 +38,7 @@ class SchluterGfciBinarySensor(SchluterEntity, BinarySensorEntity):
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_name = "GFCI Status"
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the GFCI binary sensor."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = f"{self._identifier}_gfci"

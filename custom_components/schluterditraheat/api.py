@@ -1,4 +1,5 @@
 """API client for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import asyncio
@@ -24,12 +25,12 @@ _LOGGER = logging.getLogger(__name__)
 # documented *limits* below come from Neviweb and are not independently verified
 # against schluterditraheat.com — treat them as informative, not authoritative.
 # Nothing in this module reads these values; handling is reactive.
-ERROR_DAILY_LIMIT = "ACCDAYREQMAX"      # daily request cap; Neviweb documents
-                                        # 30,000/day and the error body embeds
-                                        # the cap as {"daily": 30000}
-ERROR_RATE_LIMIT = "ACCRATELIMIT"       # logging in too frequently
-ERROR_SESSION_LIMIT = "ACCSESSEXC"      # too many concurrent sessions
-ERROR_SESSION_EXPIRED = "USRSESSEXP"    # session expired; re-authenticate
+ERROR_DAILY_LIMIT = "ACCDAYREQMAX"  # daily request cap; Neviweb documents
+# 30,000/day and the error body embeds
+# the cap as {"daily": 30000}
+ERROR_RATE_LIMIT = "ACCRATELIMIT"  # logging in too frequently
+ERROR_SESSION_LIMIT = "ACCSESSEXC"  # too many concurrent sessions
+ERROR_SESSION_EXPIRED = "USRSESSEXP"  # session expired; re-authenticate
 
 
 class SchluterApiError(Exception):
@@ -96,7 +97,7 @@ def _coerce(value: Any, cast: Any) -> Any:
     """Cast a header value, returning None on missing/invalid input."""
     try:
         return cast(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 
@@ -166,9 +167,7 @@ class SchluterApi:
         if code == ERROR_SESSION_EXPIRED:
             raise SchluterSessionExpiredError("Server session expired")
         if code == ERROR_RATE_LIMIT:
-            raise SchluterRateLimitError(
-                "Login rate limited; wait a few minutes and try again."
-            )
+            raise SchluterRateLimitError("Login rate limited; wait a few minutes and try again.")
         raise SchluterApiError(f"API error: {code}")
 
     async def authenticate(self) -> None:
@@ -218,7 +217,7 @@ class SchluterApi:
                         self._user_format.get("temperature", "unknown"),
                     )
 
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise SchluterConnectionError("Connection timeout") from err
         except aiohttp.ClientError as err:
             raise SchluterConnectionError(f"Connection error: {err}") from err
@@ -311,7 +310,7 @@ class SchluterApi:
 
                     return data
 
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise SchluterConnectionError("Connection timeout") from err
         except aiohttp.ClientError as err:
             raise SchluterConnectionError(f"Connection error: {err}") from err
@@ -324,14 +323,10 @@ class SchluterApi:
     ) -> dict[str, Any]:
         """Validate that a response is a dict with required fields."""
         if not isinstance(data, dict):
-            raise SchluterApiError(
-                f"{context}: expected dict, got {type(data).__name__}"
-            )
+            raise SchluterApiError(f"{context}: expected dict, got {type(data).__name__}")
         missing = [f for f in required_fields if f not in data]
         if missing:
-            raise SchluterApiError(
-                f"{context}: missing required fields: {', '.join(missing)}"
-            )
+            raise SchluterApiError(f"{context}: missing required fields: {', '.join(missing)}")
         return data
 
     @staticmethod
@@ -348,9 +343,7 @@ class SchluterApi:
         if isinstance(data, dict):
             data = [data]
         if not isinstance(data, list):
-            raise SchluterApiError(
-                f"{context}: expected list or dict, got {type(data).__name__}"
-            )
+            raise SchluterApiError(f"{context}: expected list or dict, got {type(data).__name__}")
         for i, item in enumerate(data):
             SchluterApi._validate_response(item, required_fields, f"{context}[{i}]")
         return data
@@ -478,9 +471,7 @@ class SchluterApi:
 
         return result
 
-    async def get_device_attributes_bulk(
-        self, device_ids: list[int]
-    ) -> dict[int, dict[str, Any]]:
+    async def get_device_attributes_bulk(self, device_ids: list[int]) -> dict[int, dict[str, Any]]:
         """Fetch and parse attributes for multiple devices.
 
         Fetches attributes for each device sequentially (rate-limit safe).
@@ -495,29 +486,23 @@ class SchluterApi:
         for device_id in device_ids:
             try:
                 raw = await self.get_device_attributes(device_id)
-            except (SchluterRateLimitError, SchluterAuthenticationError):
+            except SchluterRateLimitError, SchluterAuthenticationError:
                 # Rate/daily limits and session/auth failures affect every
                 # device, not just this one — propagate so the coordinator can
                 # back off or trigger re-authentication instead of silently
                 # marking all entities unavailable.
                 raise
             except SchluterApiError as err:
-                _LOGGER.error(
-                    "Failed to get attributes for device %s: %s", device_id, err
-                )
+                _LOGGER.error("Failed to get attributes for device %s: %s", device_id, err)
                 continue
 
             _LOGGER.debug("Raw attributes for device %s: %s", device_id, raw)
 
             parsed = {
-                "current_temperature": raw.get(
-                    "roomTemperatureDisplay", {}
-                ).get("value"),
+                "current_temperature": raw.get("roomTemperatureDisplay", {}).get("value"),
                 "target_temperature": raw.get("roomSetpoint"),
                 "mode": raw.get("setpointMode"),
-                "heating_percent": raw.get(
-                    "outputPercentDisplay", {}
-                ).get("percent", 0),
+                "heating_percent": raw.get("outputPercentDisplay", {}).get("percent", 0),
                 "air_floor_mode": raw.get("airFloorMode"),
                 "gfci_status": raw.get("gfciStatus"),
                 "load_watt": self._parse_load_watt(raw),
@@ -551,6 +536,7 @@ class SchluterApi:
         Outputs are returned as bare numbers, but tolerate the ``{"value": n}``
         wrapper some attributes use. Missing/None outputs count as zero.
         """
+
         def _watts(value: Any) -> float:
             if isinstance(value, dict):
                 value = value.get("value")
@@ -578,9 +564,7 @@ class SchluterApi:
 
         if isinstance(data, dict) and "error" in data:
             code = data["error"].get("code", "")
-            raise SchluterApiError(
-                f"get_consumption_history({device_id}, {granularity}): {code}"
-            )
+            raise SchluterApiError(f"get_consumption_history({device_id}, {granularity}): {code}")
 
         return self._validate_response(
             data,

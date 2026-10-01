@@ -1,4 +1,5 @@
 """Constants for the Schluter DITRA-HEAT integration."""
+
 from datetime import timedelta
 
 DOMAIN = "schluterditraheat"

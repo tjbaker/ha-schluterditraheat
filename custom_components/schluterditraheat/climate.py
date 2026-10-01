@@ -1,4 +1,5 @@
 """Climate platform for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import logging
@@ -47,10 +48,7 @@ async def async_setup_entry(
     coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     # Create a climate entity for each thermostat
-    entities = [
-        SchluterThermostat(coordinator, device_id)
-        for device_id in coordinator.data
-    ]
+    entities = [SchluterThermostat(coordinator, device_id) for device_id in coordinator.data]
 
     async_add_entities(entities)
 
@@ -73,9 +71,7 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF, HVACMode.AUTO]
     _attr_preset_modes = [PRESET_NONE, PRESET_FROST_PROTECTION]
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the thermostat."""
         super().__init__(coordinator, device_id)
 

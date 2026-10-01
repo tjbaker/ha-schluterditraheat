@@ -1,4 +1,5 @@
 """Shared entity base for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -33,9 +34,7 @@ class SchluterEntity(CoordinatorEntity[SchluterDataUpdateCoordinator]):
 
     _attr_has_entity_name = True
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
         self._device_id = device_id

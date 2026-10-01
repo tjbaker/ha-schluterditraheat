@@ -1,4 +1,5 @@
 """Unit tests for Schluter climate entity."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -14,7 +15,6 @@ from custom_components.schluterditraheat.const import (
     PRESET_FROST_PROTECTION,
     PRESET_NONE,
 )
-
 
 MOCK_THERMOSTAT = {
     "device_id": 40001,

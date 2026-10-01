@@ -1,4 +1,5 @@
 """Unit tests for Schluter coordinator."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -22,7 +23,6 @@ from custom_components.schluterditraheat.const import (
 # Import the stub exceptions wired in conftest.py.
 from homeassistant.exceptions import ConfigEntryAuthFailed as _ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed as _UpdateFailed
-
 
 MOCK_STATIC_DATA = {
     40001: {
@@ -227,9 +227,7 @@ class TestDataMerge:
 
         assert 40001 not in result
 
-    async def test_auth_error_raises_config_entry_auth_failed(
-        self, coordinator, mock_api
-    ):
+    async def test_auth_error_raises_config_entry_auth_failed(self, coordinator, mock_api):
         """Test that auth errors trigger ConfigEntryAuthFailed."""
         mock_api.get_static_data.side_effect = SchluterAuthenticationError("bad creds")
 
@@ -293,9 +291,7 @@ class TestDailyLimit:
 
         await coordinator._async_update_data()  # seed static data
 
-        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError(
-            "daily cap"
-        )
+        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError("daily cap")
 
         with patch(
             "custom_components.schluterditraheat._seconds_until_local_midnight",
@@ -316,9 +312,7 @@ class TestDailyLimitRecovery:
         from custom_components.schluterditraheat.const import DAILY_LIMIT_MAX_PAUSE
 
         await coordinator._async_update_data()
-        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError(
-            "cap"
-        )
+        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError("cap")
 
         # Midnight is far away (10h); pause must be capped to the max.
         with patch(
@@ -331,16 +325,12 @@ class TestDailyLimitRecovery:
         assert coordinator.update_interval == DAILY_LIMIT_MAX_PAUSE
         assert coordinator._backoff_interval == DAILY_LIMIT_MAX_PAUSE
 
-    async def test_success_after_daily_pause_restores_interval(
-        self, coordinator, mock_api
-    ):
+    async def test_success_after_daily_pause_restores_interval(self, coordinator, mock_api):
         """Test a successful poll after a daily pause restores the scan interval."""
         from custom_components.schluterditraheat.api import SchluterDailyLimitError
 
         await coordinator._async_update_data()
-        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError(
-            "cap"
-        )
+        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError("cap")
         with patch(
             "custom_components.schluterditraheat._seconds_until_local_midnight",
             return_value=1800.0,
@@ -372,9 +362,7 @@ class TestDailyLimitSharedPause:
         await coordinator._async_update_data()
         assert coordinator.daily_limit_reached is False
 
-        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError(
-            "cap"
-        )
+        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError("cap")
         with patch(
             "custom_components.schluterditraheat._seconds_until_local_midnight",
             return_value=3600.0,
@@ -389,9 +377,7 @@ class TestDailyLimitSharedPause:
         from custom_components.schluterditraheat.api import SchluterDailyLimitError
 
         await coordinator._async_update_data()
-        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError(
-            "cap"
-        )
+        mock_api.get_device_attributes_bulk.side_effect = SchluterDailyLimitError("cap")
         with patch(
             "custom_components.schluterditraheat._seconds_until_local_midnight",
             return_value=3600.0,

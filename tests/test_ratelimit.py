@@ -1,4 +1,5 @@
 """Unit tests for rate-limit parsing and budget logic (pure, no HA)."""
+
 from __future__ import annotations
 
 from custom_components.schluterditraheat.api import (
@@ -26,9 +27,7 @@ class TestParseHeaders:
 
     def test_case_insensitive_and_standard_names(self):
         """Test lowercase and the standard RateLimit-* names both work."""
-        rl = parse_rate_limit_headers(
-            {"ratelimit-remaining": "5", "ratelimit-limit": "10"}
-        )
+        rl = parse_rate_limit_headers({"ratelimit-remaining": "5", "ratelimit-limit": "10"})
         assert rl is not None
         assert rl.remaining == 5
         assert rl.limit == 10
@@ -39,9 +38,7 @@ class TestParseHeaders:
 
     def test_tolerates_garbage_values(self):
         """Test non-numeric header values are ignored rather than raising."""
-        rl = parse_rate_limit_headers(
-            {"x-ratelimit-remaining": "n/a", "x-ratelimit-limit": "100"}
-        )
+        rl = parse_rate_limit_headers({"x-ratelimit-remaining": "n/a", "x-ratelimit-limit": "100"})
         assert rl is not None
         assert rl.remaining is None
         assert rl.limit == 100

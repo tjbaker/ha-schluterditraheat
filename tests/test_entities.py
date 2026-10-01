@@ -1,4 +1,5 @@
 """Unit tests for Schluter entity classes."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -15,7 +16,6 @@ from custom_components.schluterditraheat.sensor import (
     SchluterPowerSensor,
     SchluterWifiSignalSensor,
 )
-
 
 MOCK_THERMOSTAT = {
     "device_id": 40001,

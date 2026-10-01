@@ -1,5 +1,6 @@
 """Unit tests for Schluter API client."""
-from datetime import datetime, timezone
+
+from datetime import datetime, timezone, UTC
 
 import pytest
 
@@ -13,7 +14,6 @@ from custom_components.schluterditraheat.api import (
     SchluterSessionLimitError,
 )
 from custom_components.schluterditraheat.const import API_BASE_URL
-
 
 
 class TestAuthentication:
@@ -424,9 +424,7 @@ class TestRetryOnAuth:
 
         # Verify exactly 2 GETs and 1 POST (login)
         all_calls = [
-            (url_key, call)
-            for url_key, calls in mock_aiohttp.requests.items()
-            for call in calls
+            (url_key, call) for url_key, calls in mock_aiohttp.requests.items() for call in calls
         ]
         get_count = sum(1 for url_key, _ in all_calls if url_key[0] == "GET")
         post_count = sum(1 for url_key, _ in all_calls if url_key[0] == "POST")
@@ -514,7 +512,7 @@ def _mock_static_endpoints(mock_aiohttp):
                 "name": "DITRA-HEAT-E-RS1",
                 "location$id": 30001,
                 "group$id": 50001,
-                "sku": "?"
+                "sku": "?",
             }
         ],
         status=200,
@@ -591,9 +589,7 @@ class TestSplitFetching:
         assert attrs["air_floor_mode"] == "floor"
         assert attrs["gfci_status"] == "ok"
 
-    async def test_get_device_attributes_bulk_partial_failure(
-        self, api_client, mock_aiohttp
-    ):
+    async def test_get_device_attributes_bulk_partial_failure(self, api_client, mock_aiohttp):
         """Test that one device failing doesn't prevent others from succeeding."""
         import re as _re
 
@@ -615,9 +611,7 @@ class TestSplitFetching:
         assert 222 in result
         assert result[222]["mode"] == "auto"
 
-    async def test_get_all_thermostats_backward_compat(
-        self, api_client, mock_aiohttp
-    ):
+    async def test_get_all_thermostats_backward_compat(self, api_client, mock_aiohttp):
         """Test get_all_thermostats returns same shape as before refactor."""
         api_client._session_id = "test_session"
         api_client._account_id = 10001
@@ -736,9 +730,7 @@ class TestErrorCodeHandling:
         with pytest.raises(SchluterRateLimitError):
             await api_client.get_locations()
 
-    async def test_session_expired_reauthenticates_and_retries(
-        self, api_client, mock_aiohttp
-    ):
+    async def test_session_expired_reauthenticates_and_retries(self, api_client, mock_aiohttp):
         """Test USRSESSEXP triggers re-auth and a retry of the request."""
         api_client._session_id = "old_session"
         api_client._account_id = 10001
@@ -852,6 +844,8 @@ class TestReviewRegressions:
 
         with pytest.raises(SchluterRateLimitError):
             await api_client.get_locations()
+
+
 class TestLoadWattParsing:
     """Test connected-load (watts) parsing from device attributes."""
 
@@ -869,9 +863,7 @@ class TestLoadWattParsing:
 
         assert result[40001]["load_watt"] == 364
 
-    async def test_load_watt_defaults_to_zero_when_absent(
-        self, api_client, mock_aiohttp
-    ):
+    async def test_load_watt_defaults_to_zero_when_absent(self, api_client, mock_aiohttp):
         """Test load_watt is 0 when the outputs are missing from the response."""
         api_client._session_id = "test_session"
         _mock_attributes(mock_aiohttp, device_id=40001)
@@ -882,9 +874,12 @@ class TestLoadWattParsing:
 
     def test_parse_load_watt_tolerates_value_wrapper_and_none(self):
         """Test _parse_load_watt handles {'value': n} wrappers and None."""
-        assert SchluterApi._parse_load_watt(
-            {"loadWattOutput1": {"value": 264}, "loadWattOutput2": None}
-        ) == 264
+        assert (
+            SchluterApi._parse_load_watt(
+                {"loadWattOutput1": {"value": 264}, "loadWattOutput2": None}
+            )
+            == 264
+        )
         assert SchluterApi._parse_load_watt({}) == 0
 
 
@@ -947,7 +942,7 @@ class TestConsumptionHistory:
 
         points = SchluterApi.parse_consumption_history(data)
 
-        assert points[0][0] == datetime(2026, 7, 11, 0, 0, tzinfo=timezone.utc)
+        assert points[0][0] == datetime(2026, 7, 11, 0, 0, tzinfo=UTC)
         assert points[0][1] == 1.0  # 1000 Wh -> 1 kWh
         assert points[1][1] == 0.5  # 500 Wh -> 0.5 kWh
 
@@ -971,9 +966,9 @@ class TestBuildEnergyStatistics:
 
     def _points(self):
         return [
-            (datetime(2026, 7, 11, 0, tzinfo=timezone.utc), 1.0),
-            (datetime(2026, 7, 11, 1, tzinfo=timezone.utc), 0.5),
-            (datetime(2026, 7, 11, 2, tzinfo=timezone.utc), 2.0),
+            (datetime(2026, 7, 11, 0, tzinfo=UTC), 1.0),
+            (datetime(2026, 7, 11, 1, tzinfo=UTC), 0.5),
+            (datetime(2026, 7, 11, 2, tzinfo=UTC), 2.0),
         ]
 
     def test_first_import_accumulates_from_zero(self):
@@ -985,23 +980,23 @@ class TestBuildEnergyStatistics:
 
     def test_incremental_import_continues_from_last_sum(self):
         """Test only new buckets are appended, continuing the prior sum."""
-        last_start = datetime(2026, 7, 11, 1, tzinfo=timezone.utc)
+        last_start = datetime(2026, 7, 11, 1, tzinfo=UTC)
         rows = SchluterApi.build_energy_statistics(
             self._points(),
             last_start=last_start,
-            last_sum=10.0,   # cumulative total through the 01:00 bucket
+            last_sum=10.0,  # cumulative total through the 01:00 bucket
             last_state=0.5,  # the 01:00 bucket's own energy
         )
 
         # Re-emits the 01:00 bucket (correcting it) then appends 02:00.
         assert rows[0]["start"] == last_start
-        assert rows[0]["sum"] == 10.0   # (10.0 - 0.5) + 0.5
-        assert rows[1]["start"] == datetime(2026, 7, 11, 2, tzinfo=timezone.utc)
-        assert rows[1]["sum"] == 12.0   # 10.0 + 2.0
+        assert rows[0]["sum"] == 10.0  # (10.0 - 0.5) + 0.5
+        assert rows[1]["start"] == datetime(2026, 7, 11, 2, tzinfo=UTC)
+        assert rows[1]["sum"] == 12.0  # 10.0 + 2.0
 
     def test_no_new_buckets_reemits_only_last(self):
         """Test a window with nothing newer re-emits just the last bucket."""
-        last_start = datetime(2026, 7, 11, 2, tzinfo=timezone.utc)
+        last_start = datetime(2026, 7, 11, 2, tzinfo=UTC)
         rows = SchluterApi.build_energy_statistics(
             self._points(),
             last_start=last_start,
