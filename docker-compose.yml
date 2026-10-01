@@ -7,8 +7,8 @@
 #   docker compose down               # Stop and remove containers
 #   docker compose down -v            # Stop and remove ALL data (fresh start)
 #
-# After starting, open http://localhost:8124
-# (8124 rather than 8123 so it can run alongside other HA dev containers)
+# After starting, open http://localhost:8123
+# To run alongside another HA on 8123: HA_PORT=8124 docker compose up -d
 
 services:
   homeassistant:
@@ -20,7 +20,7 @@ services:
     tty: true  # Proper log formatting and colors
     # network_mode: host doesn't work on macOS/Windows Docker Desktop
     ports:
-      - "8124:8123"
+      - "${HA_PORT:-8123}:8123"
 
     volumes:
       # Integration code mounted read-only (edit locally, then restart)
