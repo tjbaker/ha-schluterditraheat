@@ -1,4 +1,5 @@
 """Climate platform for Schluter DITRA-HEAT."""
+
 from __future__ import annotations
 
 import logging
@@ -13,10 +14,11 @@ from homeassistant.components.climate import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import SchluterDataUpdateCoordinator
+from .api import SchluterApiError
 from .const import (
     ATTR_DEVICE_ID,
     ATTR_GROUP_NAME,
@@ -26,9 +28,13 @@ from .const import (
     MAX_TEMP_C,
     MIN_TEMP_C,
     MODE_AUTO,
+    MODE_FROST_SAFE,
     MODE_MANUAL,
     MODE_OFF,
+    PRESET_FROST_PROTECTION,
+    PRESET_NONE,
 )
+from .entity import SchluterEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,41 +48,35 @@ async def async_setup_entry(
     coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     # Create a climate entity for each thermostat
-    entities = [
-        SchluterThermostat(coordinator, device_id)
-        for device_id in coordinator.data
-    ]
+    entities = [SchluterThermostat(coordinator, device_id) for device_id in coordinator.data]
 
     async_add_entities(entities)
 
 
-class SchluterThermostat(CoordinatorEntity[SchluterDataUpdateCoordinator], ClimateEntity):
+class SchluterThermostat(SchluterEntity, ClimateEntity):
     """Representation of a Schluter DITRA-HEAT thermostat."""
+
+    # This entity names itself ("Master Bath Floor Heat") rather than being
+    # named after the device it belongs to, so it opts out of the base's
+    # has_entity_name. Flipping this would rename existing entities.
+    _attr_has_entity_name = False
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
+        ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.TURN_OFF
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.PRESET_MODE
     )
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF, HVACMode.AUTO]
+    _attr_preset_modes = [PRESET_NONE, PRESET_FROST_PROTECTION]
 
-    def __init__(
-        self, coordinator: SchluterDataUpdateCoordinator, device_id: int
-    ) -> None:
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the thermostat."""
-        super().__init__(coordinator)
-        self._device_id = device_id
+        super().__init__(coordinator, device_id)
 
         # Set unique ID based on device identifier
-        thermostat = coordinator.data[device_id]
-        self._attr_unique_id = thermostat["identifier"]
-
-        # Set device info
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, thermostat["identifier"])},
-            "name": self._get_display_name(thermostat),
-            "manufacturer": thermostat.get("vendor", "Schluter"),
-            "model": thermostat.get("sku", "DITRA-HEAT-E-WiFi"),
-        }
+        self._attr_unique_id = self._identifier
 
     def _get_display_name(self, thermostat: dict[str, Any]) -> str:
         """Get a user-friendly display name for the thermostat."""
@@ -86,15 +86,9 @@ class SchluterThermostat(CoordinatorEntity[SchluterDataUpdateCoordinator], Clima
         return thermostat.get("name", f"Thermostat {self._device_id}")
 
     @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._device_id in self.coordinator.data
-
-    @property
     def name(self) -> str:
         """Return the name of the thermostat."""
-        thermostat = self.coordinator.data.get(self._device_id, {})
-        return self._get_display_name(thermostat)
+        return self._get_display_name(self._thermostat)
 
     @property
     def current_temperature(self) -> float | None:
@@ -137,6 +131,17 @@ class SchluterThermostat(CoordinatorEntity[SchluterDataUpdateCoordinator], Clima
         return HVACAction.IDLE
 
     @property
+    def preset_mode(self) -> str | None:
+        """Return current preset mode."""
+        thermostat = self.coordinator.data.get(self._device_id, {})
+        mode = thermostat.get("mode")
+        if mode == MODE_FROST_SAFE:
+            return PRESET_FROST_PROTECTION
+        if mode in (MODE_MANUAL, MODE_AUTO, MODE_OFF):
+            return PRESET_NONE
+        return None
+
+    @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
         return MIN_TEMP_C
@@ -163,7 +168,10 @@ class SchluterThermostat(CoordinatorEntity[SchluterDataUpdateCoordinator], Clima
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
 
-        await self.coordinator.api.set_temperature(self._device_id, temperature)
+        try:
+            await self.coordinator.api.set_temperature(self._device_id, temperature)
+        except SchluterApiError as err:
+            raise HomeAssistantError(f"Failed to set temperature: {err}") from err
 
         # Optimistic update — push new value to UI immediately
         if self._device_id in self.coordinator.data:
@@ -184,9 +192,30 @@ class SchluterThermostat(CoordinatorEntity[SchluterDataUpdateCoordinator], Clima
             _LOGGER.error("Unsupported HVAC mode: %s", hvac_mode)
             return
 
-        await self.coordinator.api.set_mode(self._device_id, mode)
+        try:
+            await self.coordinator.api.set_mode(self._device_id, mode)
+        except SchluterApiError as err:
+            raise HomeAssistantError(f"Failed to set HVAC mode: {err}") from err
 
         # Optimistic update — push new value to UI immediately
+        if self._device_id in self.coordinator.data:
+            self.coordinator.data[self._device_id]["mode"] = mode
+            self.async_write_ha_state()
+
+        await self.coordinator.async_request_refresh()
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set new preset mode."""
+        if preset_mode == PRESET_FROST_PROTECTION:
+            mode = MODE_FROST_SAFE
+        elif preset_mode == PRESET_NONE:
+            mode = MODE_MANUAL
+        else:
+            _LOGGER.error("Unsupported preset mode: %s", preset_mode)
+            return
+
+        await self.coordinator.api.set_mode(self._device_id, mode)
+
         if self._device_id in self.coordinator.data:
             self.coordinator.data[self._device_id]["mode"] = mode
             self.async_write_ha_state()

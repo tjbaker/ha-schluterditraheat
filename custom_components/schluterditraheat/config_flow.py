@@ -1,15 +1,14 @@
 """Config flow for Schluter DITRA-HEAT integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import (
@@ -31,9 +30,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-async def validate_credentials(
-    hass: HomeAssistant, username: str, password: str
-) -> dict[str, Any]:
+async def validate_credentials(hass: HomeAssistant, username: str, password: str) -> dict[str, Any]:
     """Validate credentials by attempting authentication.
 
     Returns account information on success.
@@ -61,14 +58,14 @@ class SchluterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             try:
                 # Validate credentials
-                info = await validate_credentials(
+                await validate_credentials(
                     self.hass,
                     user_input[CONF_USERNAME],
                     user_input[CONF_PASSWORD],
@@ -106,16 +103,16 @@ class SchluterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(self, entry_data: dict[str, Any]) -> FlowResult:
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> config_entries.ConfigFlowResult:
         """Handle reauth when credentials expire."""
-        self.reauth_entry = self.hass.config_entries.async_get_entry(
-            self.context["entry_id"]
-        )
+        self.reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle reauth confirmation."""
         errors: dict[str, str] = {}
 
@@ -160,8 +157,6 @@ class SchluterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema({vol.Required(CONF_PASSWORD): str}),
             errors=errors,
             description_placeholders={
-                CONF_USERNAME: self.reauth_entry.data[CONF_USERNAME]
-                if self.reauth_entry
-                else ""
+                CONF_USERNAME: self.reauth_entry.data[CONF_USERNAME] if self.reauth_entry else ""
             },
         )

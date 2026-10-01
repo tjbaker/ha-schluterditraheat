@@ -13,6 +13,9 @@ Sinopé's Neviweb platform. There is no local API.
 - **Integration domain**: `schluterditraheat`
 - **IoT class**: `cloud_polling`
 - **Python**: 3.14 for development and CI
+- **Minimum Home Assistant**: 2026.9.0, set in `hacs.json`. Support the
+  version pinned in `requirements-dev.txt` and newer only; don't add
+  compatibility shims for older cores. Raise the floor along with the pin.
 - **License**: MIT (no per-file license headers)
 - **Origin**: maintained fork of
   [KevinFarrell/ha-schluterditraheat](https://github.com/KevinFarrell/ha-schluterditraheat).

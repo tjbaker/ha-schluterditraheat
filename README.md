@@ -14,7 +14,11 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 
 - **Climate entity** — control temperature and mode (Auto, Heat/Manual, Off) per thermostat
 - **Heating output sensor** — track heating output percentage with history graphs and long-term statistics
+- **Power sensor** — instantaneous power draw (watts) of the connected heating load
+- **Energy dashboard** — hourly energy consumption imported into long-term statistics for use in the Home Assistant Energy dashboard
 - **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
+- **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
+- **Device metadata** — model, software and hardware version, and serial number on the device page
 
 ## Installation
 
@@ -47,7 +51,30 @@ Each thermostat creates the following entities, grouped under a single device:
 |--------|------|-------------|
 | Floor Heat | Climate | Temperature control and mode selection |
 | Heating Output | Sensor | Current heating output percentage (0–100%) |
+| Power | Sensor | Instantaneous power draw in watts — full connected load while heating, 0 when idle (the cable switches on and off rather than modulating) |
 | GFCI Status | Binary Sensor | Ground fault detection (problem device class) |
+| Refresh | Button | Force an immediate poll of the cloud (see below) |
+| Wi-Fi Signal | Sensor | Signal strength in dBm (diagnostic) |
+
+The device page also shows the model, software version, hardware version and serial number reported by the thermostat.
+
+The web app renders the same Wi-Fi reading as a five-level scale (amazing, very good, okay, weak, very weak). The API returns the underlying dBm value, which is what this integration exposes; use a template sensor if you want the bucketed wording.
+
+In addition, each thermostat's hourly energy consumption is imported into Home Assistant's long-term statistics (as an external statistic, in kWh) so it can be added to the **Energy dashboard**. The statistic refreshes hourly. On first setup, the roughly 24 hours of hourly history the cloud still holds is imported, so the dashboard is not starting from empty — but this is a short rolling window, not a full history: energy usage from before you installed the integration is not available.
+
+> **Note:** The thermostat reports energy per hour, not a continuously increasing meter reading, so energy appears as an Energy-dashboard statistic rather than a regular sensor entity. Add it via **Settings → Dashboards → Energy → Add consumption**, where it is listed as `Schluter DITRA-HEAT` energy for each thermostat.
+
+> **Use the imported statistic for energy, not the Power sensor.** The imported consumption is the accurate energy figure and the one to add to the Energy dashboard. Do **not** build energy from the Power sensor (for example with a Riemann-sum integration helper): the thermostat is polled every five minutes while the heating cable switches on and off on a much faster cycle, so an integration of those sparse samples will not match actual usage. The Power sensor is meant for live power draw and automations, not energy totals.
+
+## Polling and rate limits
+
+The thermostat's cloud backend enforces request limits and publishes its remaining budget in `X-RateLimit-*` response headers on every call. This integration:
+
+- Polls every **300 seconds** by default, the minimum cadence the backend's OEM (Sinopé) asks integrators to respect. (Static data such as device lists is refreshed roughly hourly; the fast path only fetches thermostat state.)
+- Reads the rate-limit headers on every response and **defers the next poll** automatically when the remaining budget runs low, resuming normal cadence once it recovers.
+- Recognizes the backend's JSON error codes (which it returns instead of HTTP 429): a daily-cap hit (`ACCDAYREQMAX`) pauses polling until midnight, an expired session (`USRSESSEXP`) re-authenticates transparently, and login/session limits are surfaced clearly.
+
+Because the scheduled poll is 300 seconds, a change made on the thermostat itself or in the Schluter phone app can take up to five minutes to appear in Home Assistant. Rather than make every installation poll faster than Sinopé asks, each thermostat exposes a **Refresh** button that forces an immediate poll — press it (or call `button.press` from an automation) when you want state right now. One press refreshes every thermostat on the account, and rapid presses are coalesced so the button cannot be used to hammer the API.
 
 ## Limitations
 
@@ -57,6 +84,7 @@ This integration supports monitoring and basic control. The following are **not*
 - Changing the air/floor sensor mode
 - Firmware updates
 - Adding or removing thermostats (requires reloading the integration)
+- Recovering energy history older than the cloud's rolling window — it serves only about the last 24 hours of hourly consumption, so if Home Assistant is offline for longer than that, the missed hours are lost and are simply absent from the Energy dashboard's totals
 
 ## Development
 
@@ -68,8 +96,11 @@ This project is not affiliated with, endorsed by, or associated with Schluter Sy
 
 ## Requirements
 
-- Home Assistant 2024.1 or later
-- A Schluter DITRA-HEAT WiFi thermostat with a [schluterditraheat.com](https://schluterditraheat.com) account
+- **Home Assistant 2026.9 or later.** This is the version the test suite and dev container run against; HACS will not offer updates on older versions.
+- **A thermostat on the Schluter Smart Thermostat platform**, such as the DITRA-HEAT-E-RS1, and its [schluterditraheat.com](https://schluterditraheat.com) login (the same one the app uses). See [Compatibility](#compatibility).
+- **Internet access.** The integration only talks to Schluter's cloud; there is no local control.
+- **The Recorder integration** (enabled by default) for the Energy dashboard statistics.
+- **HACS**, if installing through HACS rather than manually.
 
 ## Credits
 
