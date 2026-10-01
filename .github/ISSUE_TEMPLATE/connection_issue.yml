@@ -1,0 +1,170 @@
+name: Connection Issue
+description: Report login, session-limit, rate-limit or cloud connection problems
+title: "[Connection]: "
+labels: ["bug", "connection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a connection issue!
+
+        This integration talks to the schluterditraheat.com cloud service; there is no local API.
+        Please provide the following information to help us diagnose the problem.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What connection issue are you experiencing?
+      placeholder: |
+        Example: Entities become unavailable every few hours and the log shows "Too many active sessions".
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection-stage
+    attributes:
+      label: Connection Stage
+      description: At what stage does the connection fail?
+      options:
+        - Initial setup (config flow)
+        - After Home Assistant restart
+        - During normal operation
+        - Asked to re-authenticate
+        - Intermittent unavailability
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: error-type
+    attributes:
+      label: Error Type
+      description: Which error do you see in the UI or logs?
+      options:
+        - Invalid email or password
+        - Too many active sessions (ACCSESSEXC)
+        - Rate limited (429 / ACCDAYREQMAX)
+        - Timeout or cannot connect
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: Error Message
+      description: Copy the exact error message from the Home Assistant logs
+      placeholder: |
+        Example:
+        2026-09-30 07:12:04.112 WARNING (MainThread) [custom_components.schluterditraheat] Rate limited by Schluter API, backing off to 0:04:00
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: thermostat-model
+    attributes:
+      label: Thermostat Model
+      placeholder: "DITRA-HEAT-E-RS1"
+    validations:
+      required: true
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version
+      placeholder: "2026.9.3"
+    validations:
+      required: true
+
+  - type: input
+    id: integration-version
+    attributes:
+      label: Integration Version
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-type
+    attributes:
+      label: Home Assistant Installation Type
+      options:
+        - Home Assistant OS
+        - Home Assistant Container
+        - Home Assistant Core
+        - Home Assistant Supervised
+    validations:
+      required: true
+
+  - type: dropdown
+    id: app-works
+    attributes:
+      label: Does the Official Schluter App Work?
+      description: Can you control the thermostat from the Schluter Smart Thermostat app or schluterditraheat.com?
+      options:
+        - "Yes"
+        - "No"
+        - "Don't know"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: other-sessions
+    attributes:
+      label: Other Logged-In Clients
+      description: |
+        The Schluter cloud limits how many sessions an account can have open at once.
+        Where else is this account logged in?
+      multiple: true
+      options:
+        - Schluter mobile app (Android)
+        - Schluter mobile app (iOS)
+        - schluterditraheat.com in a browser
+        - Another Home Assistant instance
+        - Another integration or script
+        - None
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Full Logs
+      description: |
+        Enable debug logging, restart Home Assistant and reproduce the issue:
+        ```yaml
+        logger:
+          default: info
+          logs:
+            custom_components.schluterditraheat: debug
+        ```
+        Logs never include your password, but please remove your email address before posting.
+      placeholder: Paste debug logs here
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: used-to-work
+    attributes:
+      label: Did This Ever Work?
+      options:
+        - Never worked
+        - Worked before, stopped working recently
+        - Works intermittently
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that might be relevant
+      placeholder: |
+        - Number of thermostats: 1
+        - Recently changed your Schluter password: No
+        - Other Schluter integrations installed: None
+    validations:
+      required: false
