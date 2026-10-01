@@ -86,6 +86,10 @@ This integration supports monitoring and basic control. The following are **not*
 - Adding or removing thermostats (requires reloading the integration)
 - Recovering energy history older than the cloud's rolling window — it serves only about the last 24 hours of hourly consumption, so if Home Assistant is offline for longer than that, the missed hours are lost and are simply absent from the Energy dashboard's totals
 
+## Development
+
+See [AGENTS.md](AGENTS.md) for project conventions and `make` targets, and [dev-config/README.md](dev-config/README.md) for running a local Home Assistant in Docker against your own thermostat.
+
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or associated with Schluter Systems. It uses the existing schluterditraheat.com web APIs, which are undocumented and may change at any time. If the APIs change, this integration may break until it is updated.
