@@ -59,12 +59,25 @@
         "name": "Refresh"
       }
     },
+    "number": {
+      "away_temperature": {
+        "name": "Away temperature"
+      }
+    },
     "select": {
       "occupancy": {
         "name": "Occupancy",
         "state": {
           "home": "Home",
           "away": "Away"
+        }
+      },
+      "backlight": {
+        "name": "Display backlight",
+        "state": {
+          "always_on": "Always on",
+          "bedroom": "Bedroom",
+          "off": "Off"
         }
       }
     },

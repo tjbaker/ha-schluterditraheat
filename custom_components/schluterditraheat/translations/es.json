@@ -59,12 +59,25 @@
         "name": "Actualizar"
       }
     },
+    "number": {
+      "away_temperature": {
+        "name": "Temperatura fuera de casa"
+      }
+    },
     "select": {
       "occupancy": {
         "name": "Ocupación",
         "state": {
           "home": "En casa",
           "away": "Fuera de casa"
+        }
+      },
+      "backlight": {
+        "name": "Retroiluminación de la pantalla",
+        "state": {
+          "always_on": "Siempre encendida",
+          "bedroom": "Dormitorio",
+          "off": "Apagada"
         }
       }
     },

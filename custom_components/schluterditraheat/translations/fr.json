@@ -59,12 +59,25 @@
         "name": "Actualiser"
       }
     },
+    "number": {
+      "away_temperature": {
+        "name": "Température en absence"
+      }
+    },
     "select": {
       "occupancy": {
         "name": "Occupation",
         "state": {
           "home": "À la maison",
           "away": "Absent"
+        }
+      },
+      "backlight": {
+        "name": "Rétroéclairage de l'écran",
+        "state": {
+          "always_on": "Toujours allumé",
+          "bedroom": "Chambre",
+          "off": "Éteint"
         }
       }
     },

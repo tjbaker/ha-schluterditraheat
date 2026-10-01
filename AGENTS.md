@@ -76,7 +76,8 @@ account's session limit and API rate limits. Avoid restart loops.
 | `sensor.py` | Heating output %, power (W), Wi-Fi signal (dBm), location electricity price |
 | `binary_sensor.py` | GFCI and fault-code problem sensors |
 | `switch.py` | Child lock and Early start configuration switches |
-| `select.py` | Location Home/Away (occupancy) |
+| `select.py` | Location Home/Away (occupancy) and display backlight |
+| `number.py` | Away temperature (`roomSetpointAway`) |
 | `button.py` | Refresh button that forces an immediate poll |
 | `energy.py` | Imports consumption into long-term statistics (hourly, plus a daily backfill on first import) |
 | `diagnostics.py` | Redacted diagnostics download with a health analysis (issues and recommendations) |
@@ -133,7 +134,9 @@ device metadata with per-poll attributes. Each entity reads its own
 - Writes confirmed on a DITRA-HEAT-E-RS1: `setpointMode`
   (auto/manual/off/frostProtection; `autoBypass` is ignored from off),
   `roomSetpoint`, `occupancyMode`, `keyboardLock` (lock/unlock),
-  `earlyStartCfg` (on/off).
+  `earlyStartCfg` (on/off), `backlightAutoDim` (alwaysOn/bedroom/off;
+  onDemand, sensing and auto are rejected), `roomSetpointAway` (within
+  roomSetpointMin/Max; 4.5 °C is rejected).
 - Read-only extras: `GET /device/{id}/consumption/{hourly|daily|monthly}`
   (rolling windows of ~2 days / ~1 month / months; date parameters are
   ignored), `GET /device/{id}/schedule?day=monday` (full lowercase day

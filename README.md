@@ -17,7 +17,7 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 - **Energy dashboard** — consumption imported into long-term statistics, backfilled with about a month of history on first setup, plus the electricity price from the Schluter app for cost tracking
 - **Live readings** — heating output, power draw and Wi-Fi signal
 - **Safety** — GFCI and thermostat fault sensors
-- **Thermostat settings** — Child lock and Early start
+- **Thermostat settings** — Child lock, Early start, display backlight and away temperature
 - **Device metadata** — model, firmware and hardware version, and serial number on the device page
 - **Diagnostics and repairs** — a redacted diagnostics download with a health check, and a Repairs notice when the account hits its session limit
 - **Languages** — English, Spanish and French
@@ -64,13 +64,15 @@ Each thermostat appears as a device named after its room:
 | Refresh | Button | Poll the cloud now instead of waiting for the next scheduled poll |
 | Child lock | Switch | Locks the thermostat's touchscreen (configuration) |
 | Early start | Switch | Heats ahead of schedule changes so the floor is at temperature on time (configuration) |
+| Display backlight | Select | Always on, Bedroom or Off (configuration) |
+| Away temperature | Number | The temperature the *Away* preset and the location's Away mode switch to, within the thermostat's setpoint range (configuration) |
 
-The Fault, Wi-Fi, Child lock and Early start entities are only created when the thermostat reports them.
+The Fault, Wi-Fi and configuration entities are only created when the thermostat reports them.
 
 **Modes:** *Auto* follows the schedule set in the Schluter app, *Heat* holds the temperature you set, and *Off* turns the floor off. The setpoint range comes from the thermostat (5–32 °C by default).
 
 **Presets:**
-- *Away* switches the thermostat to the away temperature set in the Schluter app; choosing *None* restores the previous temperature.
+- *Away* switches the thermostat to its away temperature (the **Away temperature** entity); choosing *None* restores the previous temperature.
 - *Frost protection* keeps the floor just warm enough to prevent freezing.
 - Only one preset is active at a time. Leaving *Away* never turns heating on by itself.
 

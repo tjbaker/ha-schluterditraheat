@@ -1,5 +1,6 @@
 {
   "airFloorMode": "floor",
+  "backlightAutoDim": "alwaysOn",
   "earlyStartCfg": "off",
   "errorCodeSet1": {
     "raw": 0
@@ -15,6 +16,7 @@
     "sourceType": "heating"
   },
   "roomSetpoint": 21.11,
+  "roomSetpointAway": 15,
   "roomSetpointMax": 32,
   "roomSetpointMin": 5,
   "roomTemperatureDisplay": {

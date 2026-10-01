@@ -408,6 +408,9 @@ class SchluterApi:
             "earlyStartCfg",
             # Fault code; 0 when the thermostat reports no error
             "errorCodeSet1",
+            # Display backlight and the away setpoint, exposed as settings
+            "backlightAutoDim",
+            "roomSetpointAway",
         ]
 
         endpoint = f"/device/{device_id}/attribute?attributes={','.join(attributes)}"
@@ -539,6 +542,8 @@ class SchluterApi:
                 "child_lock": self._parse_switch(raw.get("keyboardLock"), "lock", "unlock"),
                 "early_start": self._parse_switch(raw.get("earlyStartCfg"), "on", "off"),
                 "error_code": self._parse_error_code(raw.get("errorCodeSet1")),
+                "backlight": raw.get("backlightAutoDim"),
+                "away_temperature": self._parse_number(raw.get("roomSetpointAway")),
             }
 
             # Only set keys the device actually reported, so callers can tell
