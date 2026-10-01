@@ -40,11 +40,14 @@ async def validate_credentials(hass: HomeAssistant, username: str, password: str
     api = SchluterApi(session, username, password)
 
     await api.authenticate()
-
-    return {
+    info = {
         "account_id": api.account_id,
         "temperature_unit": api.temperature_unit,
     }
+    # The integration opens its own session on setup; don't leave this one
+    # counting toward the account's session cap.
+    await api.logout()
+    return info
 
 
 class SchluterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

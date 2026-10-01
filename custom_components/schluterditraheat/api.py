@@ -237,9 +237,10 @@ class SchluterApi:
             self.stats.note_reauthentication()
             try:
                 await self.authenticate()
-            except SchluterRateLimitError:
-                # A login rate/daily limit is transient — let the coordinator
-                # back off rather than mislabeling it as an auth failure.
+            except SchluterRateLimitError, SchluterSessionLimitError:
+                # Login rate/daily limits and the session cap are transient —
+                # let the coordinator retry rather than mislabeling them as an
+                # auth failure that asks the user for their password again.
                 raise
             except SchluterApiError as err:
                 raise SchluterAuthenticationError(

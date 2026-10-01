@@ -75,6 +75,10 @@ The thermostat's cloud backend enforces request limits and publishes its remaini
 - Reads the rate-limit headers on every response and **defers the next poll** automatically when the remaining budget runs low, resuming normal cadence once it recovers.
 - Recognizes the backend's JSON error codes (which it returns instead of HTTP 429): a daily-cap hit (`ACCDAYREQMAX`) pauses polling until midnight, an expired session (`USRSESSEXP`) re-authenticates transparently, and login/session limits are surfaced clearly.
 
+### Sessions
+
+Your Schluter account allows a limited number of logged-in sessions at once, shared by the Schluter app, the website and this integration. The integration keeps a single session and logs it out when Home Assistant stops or the integration is reloaded or removed. If the account still reports too many sessions, the integration retries setup on its own rather than asking for your password again. Signing out of schluterditraheat.com in browsers you no longer use frees sessions sooner.
+
 Because the scheduled poll is 300 seconds, a change made on the thermostat itself or in the Schluter phone app can take up to five minutes to appear in Home Assistant. Rather than make every installation poll faster than Sinopé asks, each thermostat exposes a **Refresh** button that forces an immediate poll — press it (or call `button.press` from an automation) when you want state right now. One press refreshes every thermostat on the account, and rapid presses are coalesced so the button cannot be used to hammer the API.
 
 ## Troubleshooting
