@@ -1,7 +1,5 @@
 """Unit tests for Schluter API client."""
 import pytest
-from aiohttp import ClientSession
-from aioresponses import aioresponses
 
 from custom_components.schluterditraheat.api import (
     SchluterApi,
@@ -12,20 +10,6 @@ from custom_components.schluterditraheat.api import (
 )
 from custom_components.schluterditraheat.const import API_BASE_URL
 
-
-@pytest.fixture
-def mock_aiohttp():
-    """Fixture to mock aiohttp responses."""
-    with aioresponses() as m:
-        yield m
-
-
-@pytest.fixture
-async def api_client():
-    """Fixture to create an API client."""
-    async with ClientSession() as session:
-        api = SchluterApi(session, "test@example.com", "password123")
-        yield api
 
 
 class TestAuthentication:

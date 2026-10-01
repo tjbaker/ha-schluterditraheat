@@ -1,0 +1,48 @@
+[tool.black]
+line-length = 100
+target-version = ["py314"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+exclude = [
+  "venv",
+  ".venv",
+  "**/__pycache__/**",
+  "**/.pytest_cache/**",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["E501", "F401", "I001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components"]
+force-single-line = false
+
+[tool.mypy]
+python_version = "3.14"
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+show_error_codes = true
+ignore_missing_imports = true  # Home Assistant stubs not installed in CI
+# Do not exclude tests; CI runs mypy over custom_components/schluterditraheat and tests
+exclude = "^(venv|\\.venv)(/|$)"
+explicit_package_bases = true
+check_untyped_defs = true
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.0.0"
+tag_format = "v$version"
+major_version_zero = true
+update_changelog_on_bump = true
+changelog_start_rev = ""
+use_shortcuts = true
+allow_abort = true
+max_header_length = 72
