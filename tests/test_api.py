@@ -1140,3 +1140,15 @@ class TestSetpointLimitParsing:
 
         assert result[40001]["min_temp"] == 5.0
         assert result[40001]["max_temp"] == 40.0
+
+
+class TestSwitchParsing:
+    """Test on/off setting parsing."""
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [("lock", True), ("unlock", False), (None, None), ("partial", None)],
+    )
+    def test_parse_switch(self, value, expected):
+        """Test the two known values map to booleans and anything else to None."""
+        assert SchluterApi._parse_switch(value, "lock", "unlock") is expected
