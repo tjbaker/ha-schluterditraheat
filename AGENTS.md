@@ -47,6 +47,17 @@ make check          # All of the above
 
 Single test file: `.venv/bin/pytest tests/test_api.py -v`
 
+Local Home Assistant against a real thermostat (see `dev-config/README.md`):
+
+```bash
+docker compose up -d        # http://localhost:8124, integration mounted read-only
+docker compose restart      # pick up code changes
+docker compose logs -f      # debug logging is on for the integration
+```
+
+The dev instance uses a real Schluter account, so it counts toward that
+account's session limit and API rate limits. Avoid restart loops.
+
 ## Architecture
 
 | File | Responsibility |

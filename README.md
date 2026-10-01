@@ -58,6 +58,10 @@ This integration supports monitoring and basic control. The following are **not*
 - Firmware updates
 - Adding or removing thermostats (requires reloading the integration)
 
+## Development
+
+See [AGENTS.md](AGENTS.md) for project conventions and `make` targets, and [dev-config/README.md](dev-config/README.md) for running a local Home Assistant in Docker against your own thermostat.
+
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or associated with Schluter Systems. It uses the existing schluterditraheat.com web APIs, which are undocumented and may change at any time. If the APIs change, this integration may break until it is updated.

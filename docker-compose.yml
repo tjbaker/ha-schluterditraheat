@@ -1,0 +1,51 @@
+# Docker Compose setup for local Schluter DITRA-HEAT development
+#
+# Usage:
+#   docker compose up -d              # Start HA in background
+#   docker compose logs -f            # Follow logs
+#   docker compose restart            # Restart after code changes
+#   docker compose down               # Stop and remove containers
+#   docker compose down -v            # Stop and remove ALL data (fresh start)
+#
+# After starting, open http://localhost:8124
+# (8124 rather than 8123 so it can run alongside other HA dev containers)
+
+services:
+  homeassistant:
+    container_name: ha-schluterditraheat-dev
+    # Keep in step with homeassistant== in requirements-dev.txt
+    image: ghcr.io/home-assistant/home-assistant:2026.9.3
+    restart: unless-stopped
+    privileged: false
+    tty: true  # Proper log formatting and colors
+    # network_mode: host doesn't work on macOS/Windows Docker Desktop
+    ports:
+      - "8124:8123"
+
+    volumes:
+      # Integration code mounted read-only (edit locally, then restart)
+      - ./custom_components/schluterditraheat:/config/custom_components/schluterditraheat:ro
+
+      # Persistent HA config (survives restarts, keeps your test setup)
+      - ha-config:/config
+
+      # Dev config: login-free local access and debug logging (see dev-config/README.md)
+      - ./dev-config/configuration.yaml:/config/configuration.yaml:ro
+      - ./dev-config/automations.yaml:/config/automations.yaml:ro
+      - ./dev-config/scripts.yaml:/config/scripts.yaml:ro
+      - ./dev-config/scenes.yaml:/config/scenes.yaml:ro
+
+    environment:
+      - TZ=America/New_York  # Change to your timezone
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  # Persistent volume for HA config, database and statistics.
+  # To start completely fresh: docker compose down -v
+  ha-config:
