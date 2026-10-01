@@ -1,10 +1,27 @@
 [
   {
+    "family": "740",
+    "group$id": 528001,
     "id": 995001,
     "identifier": "a1b2c3d4e5f60718",
+    "location$id": 245001,
     "name": "Tile Floor",
+    "orderIdx": 0,
+    "parentDevice$id": null,
+    "signature": {
+      "hardRev": 1,
+      "model": 740,
+      "modelCfg": 0,
+      "softBuildCfg": 0,
+      "softVersion": {
+        "major": 3,
+        "middle": 7,
+        "minor": 10
+      }
+    },
     "sku": "DITRA-HEAT-E-RS1",
-    "vendor": "Schluter",
-    "group$id": 528001
+    "url_en": null,
+    "url_fr": null,
+    "vendor": "Schluter"
   }
 ]

@@ -1,1 +1,18 @@
-[{"id": 245001, "name": "Home"}]
+[
+  {
+    "account$id": 201001,
+    "address": null,
+    "created": "2026-07-18 16:55:51",
+    "deviceListUpdate": "2026-07-18 16:58:09",
+    "group$id": null,
+    "icon": 1,
+    "id": 245001,
+    "kwhCost": 0.0885,
+    "location$id": null,
+    "mode": "home",
+    "modified": null,
+    "name": "Home",
+    "postalCode": "00000",
+    "type": null
+  }
+]
