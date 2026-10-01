@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -248,3 +249,25 @@ class TestTranslations:
             "wrong_account",
         } <= set(config["abort"])
         assert {"user", "reauth_confirm", "reconfigure"} <= set(config["step"])
+
+
+def _leaves(node: object, path: str = "") -> dict[str, str]:
+    """Flatten a translations tree to {"a.b.c": text}."""
+    if isinstance(node, dict):
+        out: dict[str, str] = {}
+        for key, value in node.items():
+            out.update(_leaves(value, f"{path}.{key}" if path else key))
+        return out
+    return {path: str(node)}
+
+
+@pytest.mark.parametrize("language", ["es", "fr"])
+def test_locale_matches_english(language: str) -> None:
+    """Test each locale translates every string, with the same placeholders."""
+    english = _leaves(json.loads((COMPONENT / "strings.json").read_text()))
+    other = _leaves(json.loads((COMPONENT / "translations" / f"{language}.json").read_text()))
+
+    assert set(other) == set(english)
+    for key, text in english.items():
+        assert set(re.findall(r"\{\w+\}", other[key])) == set(re.findall(r"\{\w+\}", text)), key
+        assert other[key].strip(), key

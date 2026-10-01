@@ -91,7 +91,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'fault',
     'unique_id': 'a1b2c3d4e5f60718_fault',
     'unit_of_measurement': None,
   })
@@ -143,7 +143,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'gfci_status',
     'unique_id': 'a1b2c3d4e5f60718_gfci',
     'unit_of_measurement': None,
   })
@@ -194,7 +194,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'refresh',
     'unique_id': 'a1b2c3d4e5f60718_refresh',
     'unit_of_measurement': None,
   })
@@ -388,7 +388,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'heating_output',
     'unique_id': 'a1b2c3d4e5f60718_heating_output',
     'unit_of_measurement': '%',
   })
@@ -446,7 +446,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'power',
     'unique_id': 'a1b2c3d4e5f60718_power',
     'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
   })
@@ -501,7 +501,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'wifi_signal',
     'unique_id': 'a1b2c3d4e5f60718_wifi_signal',
     'unit_of_measurement': 'dBm',
   })
@@ -554,7 +554,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'electricity_price',
     'unique_id': 'location_245001_electricity_price',
     'unit_of_measurement': 'EUR/kWh',
   })
@@ -606,7 +606,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'child_lock',
     'unique_id': 'a1b2c3d4e5f60718_child_lock',
     'unit_of_measurement': None,
   })
@@ -657,7 +657,7 @@
     'previous_unique_id': None,
     'suggested_object_id': None,
     'supported_features': 0,
-    'translation_key': None,
+    'translation_key': 'early_start',
     'unique_id': 'a1b2c3d4e5f60718_early_start',
     'unit_of_measurement': None,
   })

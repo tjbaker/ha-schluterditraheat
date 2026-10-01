@@ -1,0 +1,94 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar Schluter DITRA-HEAT",
+        "description": "Inicia sesión con tu cuenta de schluterditraheat.com, la misma que usa la aplicación Schluter Smart Thermostat. Se añadirán todos los termostatos de la cuenta.",
+        "data": {
+          "username": "Correo electrónico",
+          "password": "Contraseña"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Volver a iniciar sesión en Schluter DITRA-HEAT",
+        "description": "Schluter rechazó la contraseña guardada de {username}. Introduce la contraseña actual de la cuenta.",
+        "data": {
+          "password": "Contraseña"
+        }
+      },
+      "reconfigure": {
+        "title": "Actualizar las credenciales de Schluter DITRA-HEAT",
+        "description": "Actualiza la contraseña de esta cuenta. Para conectar otra cuenta de Schluter, vuelve a añadir la integración.",
+        "data": {
+          "username": "Correo electrónico",
+          "password": "Contraseña"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar con schluterditraheat.com. Comprueba la conexión a internet de Home Assistant e inténtalo de nuevo.",
+      "invalid_auth": "Correo electrónico o contraseña incorrectos.",
+      "rate_limit": "Schluter está limitando los intentos de inicio de sesión. Espera unos minutos e inténtalo de nuevo.",
+      "session_limit": "Esta cuenta de Schluter tiene demasiadas sesiones activas. Cierra la sesión de schluterditraheat.com en los navegadores que no uses o detén otras integraciones que usen esta cuenta, e inténtalo de nuevo.",
+      "unknown": "Error inesperado. Consulta el registro de Home Assistant para más detalles."
+    },
+    "abort": {
+      "already_configured": "Esta cuenta de Schluter ya está configurada.",
+      "reauth_successful": "Sesión iniciada de nuevo. La integración se ha recargado.",
+      "reconfigure_successful": "Credenciales actualizadas. La integración se ha recargado.",
+      "wrong_account": "Ese correo pertenece a otra cuenta de Schluter. Para conectarla, vuelve a añadir la integración."
+    }
+  },
+  "issues": {
+    "session_limit": {
+      "title": "La cuenta de Schluter tiene demasiadas sesiones activas",
+      "description": "Schluter no permite que Home Assistant inicie sesión en {account} porque la cuenta ya tiene el número máximo de sesiones activas. La aplicación de Schluter, el sitio web schluterditraheat.com y Home Assistant comparten ese límite.\n\nLa integración sigue reintentándolo por su cuenta y este aviso desaparece cuando inicia sesión. Para liberar una sesión antes, cierra la sesión de schluterditraheat.com en los navegadores que no uses o detén otras instancias de Home Assistant o integraciones que usen esta cuenta. Cambiar la contraseña de la cuenta suele cerrar todas las sesiones a la vez."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "gfci_status": {
+        "name": "Estado del GFCI"
+      },
+      "fault": {
+        "name": "Fallo"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Actualizar"
+      }
+    },
+    "select": {
+      "occupancy": {
+        "name": "Ocupación",
+        "state": {
+          "home": "En casa",
+          "away": "Fuera de casa"
+        }
+      }
+    },
+    "sensor": {
+      "heating_output": {
+        "name": "Potencia de calefacción"
+      },
+      "power": {
+        "name": "Potencia"
+      },
+      "wifi_signal": {
+        "name": "Señal Wi-Fi"
+      },
+      "electricity_price": {
+        "name": "Precio de la electricidad"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Bloqueo infantil"
+      },
+      "early_start": {
+        "name": "Inicio anticipado"
+      }
+    }
+  }
+}

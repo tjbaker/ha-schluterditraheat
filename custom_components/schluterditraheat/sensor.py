@@ -67,7 +67,7 @@ class SchluterHeatingOutputSensor(SchluterEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.POWER_FACTOR
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_name = "Heating Output"
+    _attr_translation_key = "heating_output"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the heating output sensor."""
@@ -92,7 +92,7 @@ class SchluterWifiSignalSensor(SchluterEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_name = "Wi-Fi Signal"
+    _attr_translation_key = "wifi_signal"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the Wi-Fi signal sensor."""
@@ -125,7 +125,7 @@ class SchluterPowerSensor(SchluterEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.POWER
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
-    _attr_name = "Power"
+    _attr_translation_key = "power"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the power sensor."""
@@ -150,7 +150,7 @@ class SchluterElectricityPriceSensor(SchluterLocationEntity, SensorEntity):
     current price") to show the cost of the imported consumption.
     """
 
-    _attr_name = "Electricity price"
+    _attr_translation_key = "electricity_price"
     _attr_icon = "mdi:cash"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, location_id: int) -> None:
