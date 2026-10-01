@@ -45,6 +45,7 @@ from .const import (
     STATIC_REFRESH_INTERVAL_POLLS,
 )
 from .energy import async_update_energy_statistics
+from .issues import async_clear_session_limit, async_raise_session_limit
 from .stats import EnergyStats, PollStats
 
 
@@ -131,6 +132,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SchluterConfigEntry) -> 
     try:
         await api.authenticate()
     except SchluterSessionLimitError as err:
+        async_raise_session_limit(hass, entry)
         raise ConfigEntryNotReady(f"Schluter account has too many sessions: {err}") from err
     except SchluterAuthenticationError as err:
         raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
@@ -144,6 +146,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: SchluterConfigEntry) -> 
         raise ConfigEntryNotReady(f"Unable to reach the Schluter API: {err}") from err
     except SchluterApiError as err:
         raise ConfigEntryNotReady(f"Unexpected response from the Schluter API: {err}") from err
+
+    # Signed in, so the account is no longer at its session cap
+    async_clear_session_limit(hass, entry)
 
     # Create coordinator
     coordinator = SchluterDataUpdateCoordinator(hass, api, entry)
@@ -191,8 +196,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: SchluterConfigEntry) ->
     # End the API session so it doesn't count toward the account's cap
     if unload_ok:
         await entry.runtime_data.api.logout()
+        async_clear_session_limit(hass, entry)
 
     return unload_ok
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: SchluterConfigEntry) -> None:
+    """Clean up after an entry is deleted, including one that never finished setup."""
+    async_clear_session_limit(hass, entry)
 
 
 class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, Any]]]):
@@ -235,6 +246,8 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
         # Diagnostics-only history; see stats.py.
         self.poll_stats = PollStats()
         self.energy_stats = EnergyStats()
+        # Whether this coordinator raised the session-limit repair issue
+        self._session_limit_raised = False
 
     def _needs_static_refresh(self) -> bool:
         """Determine if static data needs to be refreshed."""
@@ -329,6 +342,9 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
             raise
         missing = sorted(set(self._static_data or {}) - set(data))
         self.poll_stats.note_success((time.monotonic() - started) * 1000, missing)
+        if self._session_limit_raised and self.config_entry is not None:
+            async_clear_session_limit(self.hass, self.config_entry)
+            self._session_limit_raised = False
         return data
 
     async def _async_fetch_data(self) -> dict[int, dict[str, Any]]:
@@ -377,6 +393,9 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
 
         except SchluterSessionLimitError as err:
             # Re-login hit the account's session cap: retry later, don't reauth.
+            if self.config_entry is not None:
+                async_raise_session_limit(self.hass, self.config_entry)
+                self._session_limit_raised = True
             raise UpdateFailed(f"Schluter account has too many sessions: {err}") from err
         except SchluterAuthenticationError as err:
             raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err

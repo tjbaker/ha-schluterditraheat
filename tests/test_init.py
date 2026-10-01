@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Generator
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,6 +12,7 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -221,3 +224,75 @@ async def test_runtime_data_holds_bound_coordinator(
     assert coordinator.config_entry is entry
     assert coordinator.api is patched_api
     assert DOMAIN not in hass.data
+
+
+class TestSessionLimitIssue:
+    """The repair issue shown while the account is at its session cap."""
+
+    @staticmethod
+    def _issue(hass: HomeAssistant, entry: MockConfigEntry) -> ir.IssueEntry | None:
+        return ir.async_get(hass).async_get_issue(DOMAIN, f"session_limit_{entry.entry_id}")
+
+    async def test_raised_at_setup_and_cleared_on_next_login(
+        self, hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock
+    ) -> None:
+        """Test the issue appears when setup hits the cap and clears once sign-in works."""
+        patched_api.authenticate.side_effect = SchluterSessionLimitError("too many")
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        issue = self._issue(hass, entry)
+        assert issue is not None
+        assert issue.translation_key == "session_limit"
+        assert issue.translation_placeholders == {"account": "owner@example.com"}
+        assert issue.severity is ir.IssueSeverity.WARNING
+        assert not issue.is_fixable
+
+        patched_api.authenticate.side_effect = None
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+
+        assert entry.state is ConfigEntryState.LOADED
+        assert self._issue(hass, entry) is None
+
+    async def test_raised_during_poll_and_cleared_on_success(
+        self, hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock
+    ) -> None:
+        """Test a poll that hits the cap raises the issue and the next good poll clears it."""
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        coordinator = entry.runtime_data
+
+        patched_api.get_device_attributes_bulk.side_effect = SchluterSessionLimitError("too many")
+        await coordinator.async_refresh()
+        assert self._issue(hass, entry) is not None
+        assert entry.state is ConfigEntryState.LOADED
+
+        patched_api.get_device_attributes_bulk.side_effect = None
+        await coordinator.async_refresh()
+        assert self._issue(hass, entry) is None
+
+    async def test_cleared_when_entry_removed(
+        self, hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock
+    ) -> None:
+        """Test removing an entry stuck retrying setup leaves no stale issue."""
+        patched_api.authenticate.side_effect = SchluterSessionLimitError("too many")
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        assert self._issue(hass, entry) is not None
+
+        await hass.config_entries.async_remove(entry.entry_id)
+        await hass.async_block_till_done()
+
+        assert self._issue(hass, entry) is None
+
+    def test_issue_text_is_translated(self) -> None:
+        """Test the issue's title and description exist with the account placeholder."""
+        strings = json.loads(
+            (
+                Path(__file__).resolve().parents[1] / "custom_components" / DOMAIN / "strings.json"
+            ).read_text()
+        )
+        issue = strings["issues"]["session_limit"]
+        assert issue["title"]
+        assert "{account}" in issue["description"]
