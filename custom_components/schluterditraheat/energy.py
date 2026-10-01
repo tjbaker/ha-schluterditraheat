@@ -34,6 +34,7 @@ from homeassistant.util import dt as dt_util
 
 from .api import SchluterApi, SchluterApiError
 from .const import DOMAIN
+from .stats import EnergyStats
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,13 +53,17 @@ async def async_update_energy_statistics(
     hass: HomeAssistant,
     api: SchluterApi,
     thermostats: list[dict[str, Any]],
-) -> None:
+    stats: EnergyStats | None = None,
+) -> dict[str, int]:
     """Import hourly energy consumption into long-term statistics.
 
     Runs for every thermostat. A device whose history is unavailable is logged
-    and skipped; it never raises, so a failure here cannot break the config
-    entry or the climate poll loop.
+    (and recorded in ``stats``) and skipped; it never raises, so a failure here
+    cannot break the config entry or the climate poll loop.
+
+    Returns the number of rows written per statistic id.
     """
+    imported: dict[str, int] = {}
     for thermostat in thermostats:
         device_id = thermostat.get("device_id")
         identifier = thermostat.get("identifier")
@@ -72,6 +77,8 @@ async def async_update_energy_statistics(
             raw = await api.get_consumption_history(device_id, "hourly")
         except SchluterApiError as err:
             _LOGGER.warning("Energy history unavailable for %s: %s", name, err)
+            if stats is not None:
+                stats.note_error(err)
             continue
 
         points = api.parse_consumption_history(raw)
@@ -115,9 +122,12 @@ async def async_update_energy_statistics(
             StatisticData(start=row["start"], state=row["state"], sum=row["sum"]) for row in rows
         ]
         async_add_external_statistics(hass, metadata, statistics)
+        imported[statistic_id] = len(statistics)
         _LOGGER.debug(
             "Imported %d energy statistics rows for %s (%s)",
             len(rows),
             name,
             statistic_id,
         )
+
+    return imported

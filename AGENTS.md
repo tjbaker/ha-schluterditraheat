@@ -67,13 +67,18 @@ account's session limit and API rate limits. Avoid restart loops.
 
 | File | Responsibility |
 |---|---|
-| `__init__.py` | Entry setup/unload; `SchluterDataUpdateCoordinator` (60s poll, hourly static refresh, exponential backoff on 429) |
-| `api.py` | Async aiohttp client using HA's shared session: login, session reuse, one re-auth retry on 401/403, error mapping |
+| `__init__.py` | Entry setup/unload, hourly energy-import timer; `SchluterDataUpdateCoordinator` (300s poll, hourly static refresh, rate-limit throttling, backoff and daily-cap pause) |
+| `api.py` | Async aiohttp client using HA's shared session: login, session reuse, one re-auth retry, rate-limit header parsing, JSON error-code mapping, consumption history |
 | `config_flow.py` | User and reauth steps (email/password) |
-| `climate.py` | Thermostat entity: HVAC modes, setpoint, optimistic writes |
-| `sensor.py` | Heating output % sensor |
+| `entity.py` | `SchluterEntity` base: coordinator wiring, availability, shared `device_info` |
+| `climate.py` | Thermostat entity: HVAC modes, frost-protection preset, setpoint, optimistic writes |
+| `sensor.py` | Heating output %, power (W), Wi-Fi signal (dBm) |
 | `binary_sensor.py` | GFCI fault (problem) sensor |
-| `const.py` | API URL, intervals, backoff, temperature limits, mode strings |
+| `button.py` | Refresh button that forces an immediate poll |
+| `energy.py` | Imports hourly consumption into long-term statistics for the Energy dashboard |
+| `diagnostics.py` | Redacted diagnostics download with a health analysis (issues and recommendations) |
+| `stats.py` | Diagnostics-only counters kept by the API client, coordinator and energy import |
+| `const.py` | API URL, intervals, backoff, limits, temperature limits, mode strings |
 | `strings.json` | Config flow strings |
 
 Coordinator data shape: `dict[device_id, dict[str, Any]]`, merging static
@@ -93,8 +98,9 @@ should follow these even where older code does not yet:
 - `ConfigEntryNotReady` for transient setup failures,
   `ConfigEntryAuthFailed` for bad credentials, `UpdateFailed` during polls.
 - Reauth via `async_update_reload_and_abort`; add a reconfigure step.
-- Diagnostics with `async_redact_data` (email, password, session, tokens,
-  device identifiers).
+- Diagnostics must stay redacted: never include the email, password,
+  session id, tokens, full device identifiers or location names. Extend
+  `diagnostics.py` and the `stats.py` counters when adding failure modes.
 
 ## Schluter / Neviweb API Notes
 
