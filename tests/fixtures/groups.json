@@ -1,1 +1,15 @@
-[{"id": 528001, "name": "Foyer"}]
+[
+  {
+    "account$id": 201001,
+    "attributes": {
+      "category": "entrance"
+    },
+    "created": "2026-07-18 16:58:06",
+    "group$id": null,
+    "id": 528001,
+    "location$id": 245001,
+    "modified": "2026-09-12 13:21:52",
+    "name": "Foyer",
+    "type": "room"
+  }
+]
