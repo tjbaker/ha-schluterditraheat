@@ -2,32 +2,27 @@
 
 ## [2.0.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v1.1.0...v2.0.0) (2026-10-01)
 
+First release of the maintained fork of [KevinFarrell/ha-schluterditraheat](https://github.com/KevinFarrell/ha-schluterditraheat). It brings in the community pull requests that were waiting upstream, plus fixes found by testing on a DITRA-HEAT-E-RS1.
 
-* release 2.0.0 ([c13f70e](https://github.com/tjbaker/ha-schluterditraheat/commit/c13f70e43a822d68d0113ee30f8d227d1a18bb81))
+### Upgrade notes
 
+* **Home Assistant 2026.9 or later is required.** HACS won't offer this update on older versions.
+* **Switching from the upstream repo:** in HACS, replace the custom repository with `https://github.com/tjbaker/ha-schluterditraheat` and update. The integration domain and existing entity IDs are unchanged, so your automations and history carry over.
+* **The default poll interval is now 5 minutes**, up from 60 seconds, at the cloud operator's (Sinopé's) request. Use the new **Refresh** button when you want current state immediately.
 
 ### Features
 
-* add a per-device Refresh button; cite Sinope's 300s polling ask ([eda4b87](https://github.com/tjbaker/ha-schluterditraheat/commit/eda4b870c43c2854eb60acc4357555f41f64e777))
-* add diagnostics with a health analysis ([#4](https://github.com/tjbaker/ha-schluterditraheat/issues/4)) ([26826d6](https://github.com/tjbaker/ha-schluterditraheat/commit/26826d6a27145595523e348abaa387353820a6f2))
-* add power sensor and energy dashboard statistics ([04a5580](https://github.com/tjbaker/ha-schluterditraheat/commit/04a5580810188dec442da2ffc140c0e79c539622))
-* add power sensor and energy dashboard statistics ([1469c5a](https://github.com/tjbaker/ha-schluterditraheat/commit/1469c5a9f1fda804b1491365a3101991841066a9))
-* expose device metadata and a Wi-Fi signal sensor ([c6ab091](https://github.com/tjbaker/ha-schluterditraheat/commit/c6ab09164c516ae325208d042e193c58621df407))
-* header-driven rate limiting and JSON error-code handling ([2f92311](https://github.com/tjbaker/ha-schluterditraheat/commit/2f92311942777aeb03da6cb0a76b00d1561dde7a))
-* merge upstream PRs [#3](https://github.com/tjbaker/ha-schluterditraheat/issues/3)-[#6](https://github.com/tjbaker/ha-schluterditraheat/issues/6) (energy, power, rate limits, metadata) ([98d73c8](https://github.com/tjbaker/ha-schluterditraheat/commit/98d73c8e1ad1c7711d4e6c66d3c89ea6e015b20f))
-
+* **Energy dashboard:** hourly consumption is imported into long-term statistics, plus a **Power** sensor for live draw ([#4](https://github.com/KevinFarrell/ha-schluterditraheat/pull/4), @deviantintegral)
+* **Refresh** button, and rate limiting driven by the cloud's response headers and error codes, including a pause when the daily request cap is reached ([#5](https://github.com/KevinFarrell/ha-schluterditraheat/pull/5), @deviantintegral)
+* **Wi-Fi signal** sensor, plus model, firmware and hardware version on the device page ([#6](https://github.com/KevinFarrell/ha-schluterditraheat/pull/6), @deviantintegral)
+* **Frost protection** preset ([#3](https://github.com/KevinFarrell/ha-schluterditraheat/pull/3), @mszilagyi)
+* **Diagnostics** download with a health check that flags rate limits, session-limit errors, weak Wi-Fi, GFCI faults and offline thermostats ([#4](https://github.com/tjbaker/ha-schluterditraheat/issues/4)) ([26826d6](https://github.com/tjbaker/ha-schluterditraheat/commit/26826d6a27145595523e348abaa387353820a6f2))
 
 ### Bug Fixes
 
-* address review feedback on energy and power support ([7fb7002](https://github.com/tjbaker/ha-schluterditraheat/commit/7fb7002cca2d88ecb0d902576bb5cd9abfaa5c9b))
-* pause the energy import when the daily request cap is hit ([feb3baf](https://github.com/tjbaker/ha-schluterditraheat/commit/feb3bafd2e0bfa17bd0691781c6784727622f23b))
-* power sensor reports full load when heating, not load x percent ([b56c326](https://github.com/tjbaker/ha-schluterditraheat/commit/b56c326b56987b13b6746c5c0542087418f08a15))
-* specify mean_type when importing energy statistics ([83be346](https://github.com/tjbaker/ha-schluterditraheat/commit/83be346a7a064ef8a2f73ad9dcc9461a80db7eb1))
-* specify unit_class when importing energy statistics ([35519b9](https://github.com/tjbaker/ha-schluterditraheat/commit/35519b9735655ee902ce54bdd578d9e0bd9a1a7a))
-* stop leaking Schluter sessions and don't reauth on the session cap ([#7](https://github.com/tjbaker/ha-schluterditraheat/issues/7)) ([584ed31](https://github.com/tjbaker/ha-schluterditraheat/commit/584ed3177428635fe17182ddd965d73d991b695f))
-
-
-### Code Refactoring
-
-* log raw device attributes once per poll ([cc17b7a](https://github.com/tjbaker/ha-schluterditraheat/commit/cc17b7a58c7b12b537f4700a54aa64355bca0ea5))
-* type coordinator data and energy statistics for mypy ([23afb84](https://github.com/tjbaker/ha-schluterditraheat/commit/23afb84c3477069400d1066d7a795eea6428276d))
+* **Heat mode turns the floor on again:** manual mode now sends `manual` instead of `autoBypass` (upstream issues [#2](https://github.com/KevinFarrell/ha-schluterditraheat/issues/2) and [#8](https://github.com/KevinFarrell/ha-schluterditraheat/issues/8); [#3](https://github.com/KevinFarrell/ha-schluterditraheat/pull/3), @mszilagyi)
+* **No more "Too many active sessions" after restarts:** sessions are now logged out on shutdown, reload and failed setup, and hitting the session cap retries instead of asking for your password again ([#7](https://github.com/tjbaker/ha-schluterditraheat/issues/7)) ([584ed31](https://github.com/tjbaker/ha-schluterditraheat/commit/584ed3177428635fe17182ddd965d73d991b695f))
+* The energy import pauses while the daily request cap is in force ([feb3baf](https://github.com/tjbaker/ha-schluterditraheat/commit/feb3bafd2e0bfa17bd0691781c6784727622f23b), @deviantintegral)
+* The Power sensor reports the full load while heating rather than load × percentage, which matches how the heating cable actually switches ([b56c326](https://github.com/tjbaker/ha-schluterditraheat/commit/b56c326b56987b13b6746c5c0542087418f08a15), @deviantintegral)
+* Energy statistics declare `mean_type` and `unit_class`, as Home Assistant requires from 2026.11 ([83be346](https://github.com/tjbaker/ha-schluterditraheat/commit/83be346a7a064ef8a2f73ad9dcc9461a80db7eb1), [35519b9](https://github.com/tjbaker/ha-schluterditraheat/commit/35519b9735655ee902ce54bdd578d9e0bd9a1a7a), @deviantintegral)
+* Removed the deprecated `async-timeout` dependency
