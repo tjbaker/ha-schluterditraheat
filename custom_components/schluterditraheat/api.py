@@ -435,11 +435,12 @@ class SchluterApi:
         await self.set_device_attribute(device_id, "roomSetpoint", temperature_c)
 
     async def set_mode(self, device_id: int, mode: str) -> None:
-        """Set the operating mode for a device.
-
-        Valid modes: 'auto', 'off'
-        """
+        """Set the setpoint mode: 'auto', 'manual', 'off' or 'frostProtection'."""
         await self.set_device_attribute(device_id, "setpointMode", mode)
+
+    async def set_occupancy(self, device_id: int, occupancy: str) -> None:
+        """Set a thermostat's occupancy: 'home' or 'away'."""
+        await self.set_device_attribute(device_id, "occupancyMode", occupancy)
 
     async def get_static_data(self) -> dict[int, dict[str, Any]]:
         """Get static metadata for all devices.
@@ -522,6 +523,7 @@ class SchluterApi:
                 "load_watt": self._parse_load_watt(raw),
                 "min_temp": self._parse_number(raw.get("roomSetpointMin")),
                 "max_temp": self._parse_number(raw.get("roomSetpointMax")),
+                "occupancy_mode": raw.get("occupancyMode"),
                 "child_lock": self._parse_switch(raw.get("keyboardLock"), "lock", "unlock"),
                 "early_start": self._parse_switch(raw.get("earlyStartCfg"), "on", "off"),
             }

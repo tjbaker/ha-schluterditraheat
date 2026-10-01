@@ -77,3 +77,8 @@ MODE_FROST_SAFE = "frostProtection"
 # declared here to avoid scattering the literal across the codebase.
 PRESET_NONE = "none"
 PRESET_FROST_PROTECTION = "frost_protection"
+
+# Occupancy is separate from setpointMode: away switches the thermostat to its
+# away setpoint (roomSetpointAway) and home restores the previous setpoint.
+OCCUPANCY_HOME = "home"
+OCCUPANCY_AWAY = "away"

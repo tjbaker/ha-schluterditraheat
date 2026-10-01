@@ -198,20 +198,53 @@ class TestClimateServices:
         assert _writes(mock_cloud) == [{"setpointMode": "manual"}, {"setpointMode": "off"}]
 
     @pytest.mark.parametrize(
-        ("preset", "sent"), [("frost_protection", "frostProtection"), ("none", "manual")]
+        ("occupancy", "mode", "preset", "writes"),
+        [
+            # From home and off (the recorded state)
+            ("home", "off", "away", [{"occupancyMode": "away"}]),
+            ("home", "off", "frost_protection", [{"setpointMode": "frostProtection"}]),
+            ("home", "off", "none", []),
+            # Leaving Away restores home without turning heating on
+            ("away", "off", "none", [{"occupancyMode": "home"}]),
+            (
+                "away",
+                "auto",
+                "frost_protection",
+                [{"occupancyMode": "home"}, {"setpointMode": "frostProtection"}],
+            ),
+            # Leaving Frost protection keeps the existing behavior (manual heat)
+            ("home", "frostProtection", "none", [{"setpointMode": "manual"}]),
+            ("home", "frostProtection", "away", [{"occupancyMode": "away"}]),
+        ],
     )
     async def test_set_preset_mode(
         self,
         hass: HomeAssistant,
         init_integration: MockConfigEntry,
         mock_cloud: MockSession,
+        occupancy: str,
+        mode: str,
         preset: str,
-        sent: str,
+        writes: list[dict[str, str]],
     ) -> None:
-        """Test presets map to their setpointMode values."""
+        """Test each preset writes only what it must for the thermostat's current state."""
+        coordinator = init_integration.runtime_data
+        coordinator.data[DEVICE_ID].update(occupancy_mode=occupancy, mode=mode)
+
         await self._call(hass, SERVICE_SET_PRESET_MODE, **{ATTR_PRESET_MODE: preset})
 
-        assert _writes(mock_cloud) == [{"setpointMode": sent}]
+        assert _writes(mock_cloud) == writes
+
+    async def test_away_preset_reflects_occupancy(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry
+    ) -> None:
+        """Test the preset shows Away whenever the thermostat reports away occupancy."""
+        assert hass.states.get(CLIMATE).attributes["preset_mode"] == "none"
+        coordinator = init_integration.runtime_data
+        coordinator.data[DEVICE_ID]["occupancy_mode"] = "away"
+        coordinator.async_update_listeners()
+
+        assert hass.states.get(CLIMATE).attributes["preset_mode"] == "away"
 
     @pytest.mark.parametrize(
         ("service", "data"),
