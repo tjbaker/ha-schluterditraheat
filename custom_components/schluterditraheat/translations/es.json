@@ -59,7 +59,27 @@
         "name": "Actualizar"
       }
     },
+    "number": {
+      "away_setpoint": {
+        "name": "Consigna fuera de casa"
+      }
+    },
     "select": {
+      "backlight": {
+        "name": "Retroiluminación",
+        "state": {
+          "always_on": "Siempre encendida",
+          "bedroom": "Dormitorio",
+          "off": "Apagada"
+        }
+      },
+      "keypad": {
+        "name": "Teclado",
+        "state": {
+          "unlocked": "Desbloqueado",
+          "locked": "Bloqueado"
+        }
+      },
       "occupancy": {
         "name": "Ocupación",
         "state": {
@@ -83,9 +103,6 @@
       }
     },
     "switch": {
-      "child_lock": {
-        "name": "Bloqueo infantil"
-      },
       "early_start": {
         "name": "Inicio anticipado"
       }

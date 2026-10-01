@@ -294,6 +294,189 @@
     'state': 'off',
   })
 # ---
+# name: TestRegistry.test_entities_and_states_snapshot[number.foyer_away_setpoint-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 32.0,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 5.0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.AUTO: 'auto'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 0.5,
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'number',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'number.foyer_away_setpoint',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Away setpoint',
+    'options': dict({
+    }),
+    'original_device_class': <NumberDeviceClass.TEMPERATURE: 'temperature'>,
+    'original_icon': None,
+    'original_name': 'Away setpoint',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'away_setpoint',
+    'unique_id': 'a1b2c3d4e5f60718_away_setpoint',
+    'unit_of_measurement': <UnitOfTemperature.CELSIUS: '°C'>,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[number.foyer_away_setpoint-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'temperature',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Away setpoint',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 32.0,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 5.0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.AUTO: 'auto'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 0.5,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfTemperature.CELSIUS: '°C'>,
+    }),
+    'context': <ANY>,
+    'entity_id': 'number.foyer_away_setpoint',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '15.0',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.foyer_backlight-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'always_on',
+        'bedroom',
+        'off',
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'select',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'select.foyer_backlight',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Backlight',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:brightness-6',
+    'original_name': 'Backlight',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'backlight',
+    'unique_id': 'a1b2c3d4e5f60718_backlight',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.foyer_backlight-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Backlight',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:brightness-6',
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'always_on',
+        'bedroom',
+        'off',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'select.foyer_backlight',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'always_on',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.foyer_keypad-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'unlocked',
+        'locked',
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'select',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'select.foyer_keypad',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Keypad',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:dialpad',
+    'original_name': 'Keypad',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'keypad',
+    'unique_id': 'a1b2c3d4e5f60718_keypad',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.foyer_keypad-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Keypad',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:dialpad',
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'unlocked',
+        'locked',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'select.foyer_keypad',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unlocked',
+  })
+# ---
 # name: TestRegistry.test_entities_and_states_snapshot[select.home_occupancy-entry]
   EntityRegistryEntrySnapshot({
     'aliases': list([
@@ -572,57 +755,6 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': '0.0885',
-  })
-# ---
-# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_child_lock-entry]
-  EntityRegistryEntrySnapshot({
-    'aliases': list([
-      None,
-    ]),
-    'area_id': None,
-    'capabilities': None,
-    'config_entry_id': <ANY>,
-    'config_subentry_id': <ANY>,
-    'device_class': None,
-    'device_id': <ANY>,
-    'disabled_by': None,
-    'domain': 'switch',
-    'entity_category': <EntityCategory.CONFIG: 'config'>,
-    'entity_id': 'switch.foyer_child_lock',
-    'has_entity_name': True,
-    'hidden_by': None,
-    'icon': None,
-    'id': <ANY>,
-    'labels': set({
-    }),
-    'name': None,
-    'object_id_base': 'Child lock',
-    'options': dict({
-    }),
-    'original_device_class': None,
-    'original_icon': 'mdi:lock',
-    'original_name': 'Child lock',
-    'platform': 'schluterditraheat',
-    'previous_unique_id': None,
-    'suggested_object_id': None,
-    'supported_features': 0,
-    'translation_key': 'child_lock',
-    'unique_id': 'a1b2c3d4e5f60718_child_lock',
-    'unit_of_measurement': None,
-  })
-# ---
-# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_child_lock-state]
-  StateSnapshot({
-    'attributes': ReadOnlyDict({
-      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Child lock',
-      <EntityStateAttribute.ICON: 'icon'>: 'mdi:lock',
-    }),
-    'context': <ANY>,
-    'entity_id': 'switch.foyer_child_lock',
-    'last_changed': <ANY>,
-    'last_reported': <ANY>,
-    'last_updated': <ANY>,
-    'state': 'off',
   })
 # ---
 # name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_early_start-entry]

@@ -59,7 +59,27 @@
         "name": "Refresh"
       }
     },
+    "number": {
+      "away_setpoint": {
+        "name": "Away setpoint"
+      }
+    },
     "select": {
+      "backlight": {
+        "name": "Backlight",
+        "state": {
+          "always_on": "Always ON",
+          "bedroom": "Bedroom",
+          "off": "Off"
+        }
+      },
+      "keypad": {
+        "name": "Keypad",
+        "state": {
+          "unlocked": "Unlocked",
+          "locked": "Locked"
+        }
+      },
       "occupancy": {
         "name": "Occupancy",
         "state": {
@@ -83,9 +103,6 @@
       }
     },
     "switch": {
-      "child_lock": {
-        "name": "Child lock"
-      },
       "early_start": {
         "name": "Early start"
       }

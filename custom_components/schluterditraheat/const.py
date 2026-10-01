@@ -82,3 +82,13 @@ PRESET_FROST_PROTECTION = "frost_protection"
 # away setpoint (roomSetpointAway) and home restores the previous setpoint.
 OCCUPANCY_HOME = "home"
 OCCUPANCY_AWAY = "away"
+
+# Backlight (backlightAutoDim) values an RS1 accepts, keyed by the
+# option Home Assistant shows. onDemand, sensing and auto are rejected.
+BACKLIGHT_OPTIONS = {"always_on": "alwaysOn", "bedroom": "bedroom", "off": "off"}
+
+# Keypad (keyboardLock) values, as the Schluter app labels them
+KEYPAD_OPTIONS = {"unlocked": "unlock", "locked": "lock"}
+
+# Away setpoint step; the thermostat accepts values within its setpoint range
+AWAY_TEMPERATURE_STEP = 0.5

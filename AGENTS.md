@@ -75,8 +75,9 @@ account's session limit and API rate limits. Avoid restart loops.
 | `climate.py` | Thermostat entity: HVAC modes, Away and Frost protection presets, setpoint range from the device, optimistic writes |
 | `sensor.py` | Heating output %, power (W), Wi-Fi signal (dBm), location electricity price |
 | `binary_sensor.py` | GFCI and fault-code problem sensors |
-| `switch.py` | Child lock and Early start configuration switches |
-| `select.py` | Location Home/Away (occupancy) |
+| `switch.py` | Early start configuration switch |
+| `select.py` | Location Home/Away (occupancy); Backlight and Keypad thermostat settings |
+| `number.py` | Away setpoint (`roomSetpointAway`) |
 | `button.py` | Refresh button that forces an immediate poll |
 | `energy.py` | Imports consumption into long-term statistics (hourly, plus a daily backfill on first import) |
 | `diagnostics.py` | Redacted diagnostics download with a health analysis (issues and recommendations) |
@@ -103,6 +104,8 @@ device metadata with per-poll attributes. Each entity reads its own
   the unique ID is the lowercased email, checked before any login.
 - UI text lives in `strings.json` and must be copied to
   `translations/en.json`; custom integrations only load `translations/`.
+  Name settings as the Schluter app labels them (Keypad, Backlight, Away
+  setpoint, Early start) so users recognise them.
   Every string must also exist in `es.json` and `fr.json` with the same
   placeholders (tests enforce both). Entity names come from
   `_attr_translation_key`, never hardcoded `_attr_name`, except the
@@ -133,7 +136,9 @@ device metadata with per-poll attributes. Each entity reads its own
 - Writes confirmed on a DITRA-HEAT-E-RS1: `setpointMode`
   (auto/manual/off/frostProtection; `autoBypass` is ignored from off),
   `roomSetpoint`, `occupancyMode`, `keyboardLock` (lock/unlock),
-  `earlyStartCfg` (on/off).
+  `earlyStartCfg` (on/off), `backlightAutoDim` (alwaysOn/bedroom/off;
+  onDemand, sensing and auto are rejected), `roomSetpointAway` (within
+  roomSetpointMin/Max; 4.5 °C is rejected).
 - Read-only extras: `GET /device/{id}/consumption/{hourly|daily|monthly}`
   (rolling windows of ~2 days / ~1 month / months; date parameters are
   ignored), `GET /device/{id}/schedule?day=monday` (full lowercase day
