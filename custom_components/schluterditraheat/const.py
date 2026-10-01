@@ -53,7 +53,8 @@ DAILY_LIMIT_MAX_PAUSE = timedelta(hours=1)
 # constraint hit in normal operation. Login is capped far tighter (limit 3).
 RATE_LIMIT_REMAINING_FLOOR = 1
 
-# Temperature limits (Celsius)
+# Setpoint limits (Celsius) used when a thermostat doesn't report its own
+# roomSetpointMin / roomSetpointMax
 MIN_TEMP_C = 5.0
 MAX_TEMP_C = 32.0
 

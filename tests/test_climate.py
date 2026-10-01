@@ -231,3 +231,24 @@ class TestOptimisticUpdates:
         await thermostat.async_set_preset_mode("turbo_mode")
 
         coordinator.api.set_mode.assert_not_called()
+
+
+class TestSetpointLimits:
+    """The setpoint range comes from the thermostat (upstream issue #7)."""
+
+    def test_uses_device_limits(self, thermostat, coordinator):
+        """Test a thermostat configured up to 40 °C allows setpoints up to 40 °C."""
+        coordinator.data[40001].update(min_temp=10.0, max_temp=40.0)
+        assert thermostat.min_temp == 10.0
+        assert thermostat.max_temp == 40.0
+
+    def test_falls_back_when_not_reported(self, thermostat, coordinator):
+        """Test the defaults apply when the device omits its limits."""
+        coordinator.data[40001].update(min_temp=None, max_temp=None)
+        assert thermostat.min_temp == 5.0
+        assert thermostat.max_temp == 32.0
+
+    def test_zero_is_a_real_limit(self, thermostat, coordinator):
+        """Test a reported 0 °C minimum is kept rather than replaced by the default."""
+        coordinator.data[40001]["min_temp"] = 0.0
+        assert thermostat.min_temp == 0.0
