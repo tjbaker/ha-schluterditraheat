@@ -439,7 +439,7 @@ class TestFaultSensor:
 
 
 class TestBacklight:
-    """The display backlight, using the values an RS1 accepts (alwaysOn, bedroom, off)."""
+    """The backlight, using the values an RS1 accepts (alwaysOn, bedroom, off)."""
 
     ENTITY = "select.foyer_backlight"
 

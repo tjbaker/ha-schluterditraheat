@@ -408,7 +408,7 @@ class SchluterApi:
             "earlyStartCfg",
             # Fault code; 0 when the thermostat reports no error
             "errorCodeSet1",
-            # Display backlight and the away setpoint, exposed as settings
+            # Backlight and the away setpoint, exposed as settings
             "backlightAutoDim",
             "roomSetpointAway",
         ]

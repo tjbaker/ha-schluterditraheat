@@ -83,7 +83,7 @@ PRESET_FROST_PROTECTION = "frost_protection"
 OCCUPANCY_HOME = "home"
 OCCUPANCY_AWAY = "away"
 
-# Display backlight (backlightAutoDim) values an RS1 accepts, keyed by the
+# Backlight (backlightAutoDim) values an RS1 accepts, keyed by the
 # option Home Assistant shows. onDemand, sensing and auto are rejected.
 BACKLIGHT_OPTIONS = {"always_on": "alwaysOn", "bedroom": "bedroom", "off": "off"}
 

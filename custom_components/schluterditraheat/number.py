@@ -19,7 +19,7 @@ async def async_setup_entry(
     entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the away temperature for thermostats that report one."""
+    """Set up the away setpoint for thermostats that report one."""
     coordinator = entry.runtime_data
     async_add_entities(
         SchluterAwayTemperatureNumber(coordinator, device_id)
@@ -42,7 +42,7 @@ class SchluterAwayTemperatureNumber(SchluterEntity, NumberEntity):
     _attr_translation_key = "away_setpoint"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
-        """Initialize the away temperature."""
+        """Initialize the away setpoint."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = f"{self._identifier}_away_setpoint"
 
