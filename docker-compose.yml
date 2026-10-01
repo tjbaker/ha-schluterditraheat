@@ -1,14 +1,15 @@
 # Docker Compose setup for local Schluter DITRA-HEAT development
 #
 # Usage:
-#   docker compose up -d              # Start HA in background
-#   docker compose logs -f            # Follow logs
-#   docker compose restart            # Restart after code changes
-#   docker compose down               # Stop and remove containers
-#   docker compose down -v            # Stop and remove ALL data (fresh start)
+#   make docker-up                    # Start HA in background
+#   make docker-logs                  # Follow logs
+#   make docker-restart               # Restart after code changes
+#   make docker-down                  # Stop and remove containers
+#   make docker-reset                 # Remove ALL data and start fresh
+#   make help                         # Every target (wrappers around docker compose)
 #
 # After starting, open http://localhost:8123
-# To run alongside another HA on 8123: HA_PORT=8124 docker compose up -d
+# To run alongside another HA on 8123: make docker-up HA_PORT=8124
 
 services:
   homeassistant:
