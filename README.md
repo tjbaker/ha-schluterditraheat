@@ -92,8 +92,11 @@ This project is not affiliated with, endorsed by, or associated with Schluter Sy
 
 ## Requirements
 
-- Home Assistant 2024.1 or later
-- A Schluter DITRA-HEAT WiFi thermostat with a [schluterditraheat.com](https://schluterditraheat.com) account
+- **Home Assistant 2026.9 or later.** This is the version the test suite and dev container run against; HACS will not offer updates on older versions.
+- **A thermostat on the Schluter Smart Thermostat platform**, such as the DITRA-HEAT-E-RS1, and its [schluterditraheat.com](https://schluterditraheat.com) login (the same one the app uses). See [Compatibility](#compatibility).
+- **Internet access.** The integration only talks to Schluter's cloud; there is no local control.
+- **The Recorder integration** (enabled by default) for the Energy dashboard statistics.
+- **HACS**, if installing through HACS rather than manually.
 
 ## Credits
 
