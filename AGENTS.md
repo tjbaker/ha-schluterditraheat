@@ -50,7 +50,7 @@ Single test file: `.venv/bin/pytest tests/test_api.py -v`
 Local Home Assistant against a real thermostat (see `dev-config/README.md`):
 
 ```bash
-make ha-up          # http://localhost:8124, integration mounted read-only
+make ha-up          # http://localhost:8123, integration mounted read-only
 make ha-restart     # pick up code changes
 make ha-logs        # follow logs (debug logging is on for the integration)
 make ha-down        # stop

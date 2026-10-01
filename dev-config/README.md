@@ -10,8 +10,9 @@ against your real thermostat.
 make ha-up        # or: docker compose up -d
 ```
 
-1. Open http://localhost:8124. Port 8124 is used so this can run alongside
-   other HA dev containers on 8123.
+1. Open http://localhost:8123. If another Home Assistant already uses that
+   port, pick a different one with `HA_PORT=8124 make ha-up`, and use the
+   same `HA_PORT` for later `make` commands.
 2. **First start only:** finish onboarding and create any user, for example
    `dev` / `dev`. After that, local browsers are logged in automatically.
 3. **Settings → Devices & Services → Add Integration → Schluter DITRA-HEAT**,

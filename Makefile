@@ -36,7 +36,7 @@ COMPOSE ?= docker compose
 
 ha-up:
 	$(COMPOSE) up -d
-	@echo "Home Assistant: http://localhost:8124"
+	@echo "Home Assistant: http://localhost:$${HA_PORT:-8123}"
 
 ha-down:
 	$(COMPOSE) down
@@ -51,4 +51,4 @@ ha-logs:
 ha-reset:
 	$(COMPOSE) down -v
 	$(COMPOSE) up -d
-	@echo "Home Assistant (fresh): http://localhost:8124"
+	@echo "Home Assistant (fresh): http://localhost:$${HA_PORT:-8123}"
