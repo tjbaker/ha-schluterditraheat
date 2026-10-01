@@ -63,10 +63,7 @@ DEFAULT_MANUFACTURER = "Schluter"
 DEFAULT_MODEL = "DITRA-HEAT-E-WiFi"
 
 # Attributes
-ATTR_DEVICE_ID = "device_id"
-ATTR_IDENTIFIER = "identifier"
 ATTR_GROUP_NAME = "group_name"
-ATTR_LOCATION_NAME = "location_name"
 
 # Modes
 MODE_AUTO = "auto"
