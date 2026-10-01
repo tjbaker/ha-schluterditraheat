@@ -170,7 +170,7 @@ even where existing code does not yet:
   ~72 characters.
 - Releases are automated by release-please on `master`. It maintains a
   release PR that bumps `.release-please-manifest.json`, `manifest.json`
-  `version` and `CHANGELOG.md`. Merging that PR tags `vX.Y.Z` and publishes
+  `version` and `CHANGELOG.md`. Merging that PR tags `X.Y.Z` (no `v` prefix) and publishes
   the GitHub release that HACS installs. Never hand-edit versions.
 - Default branch is `master`.
 
