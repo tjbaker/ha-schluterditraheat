@@ -17,13 +17,10 @@ from homeassistant.const import (
     UnitOfPower,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
-from .const import DEFAULT_MANUFACTURER, DOMAIN
-from .entity import SchluterEntity
+from .entity import SchluterEntity, SchluterLocationEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,50 +143,23 @@ class SchluterPowerSensor(SchluterEntity, SensorEntity):
         return float(load_watt) if heating_percent > 0 else 0.0
 
 
-class SchluterElectricityPriceSensor(
-    CoordinatorEntity[SchluterDataUpdateCoordinator], SensorEntity
-):
+class SchluterElectricityPriceSensor(SchluterLocationEntity, SensorEntity):
     """Electricity price set for a location in the Schluter app.
 
     Select it under Settings → Dashboards → Energy ("Use an entity with
     current price") to show the cost of the imported consumption.
     """
 
-    _attr_has_entity_name = True
     _attr_name = "Electricity price"
     _attr_icon = "mdi:cash"
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, location_id: int) -> None:
         """Initialize the price sensor for one location."""
-        super().__init__(coordinator)
-        self._location_id = location_id
+        super().__init__(coordinator, location_id)
         self._attr_unique_id = f"location_{location_id}_electricity_price"
         self._attr_native_unit_of_measurement = (
             f"{coordinator.hass.config.currency}/{UnitOfEnergy.KILO_WATT_HOUR}"
         )
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"location_{location_id}")},
-            name=self._location.get("location_name") or "Schluter location",
-            manufacturer=DEFAULT_MANUFACTURER,
-            entry_type=DeviceEntryType.SERVICE,
-        )
-
-    @property
-    def _location(self) -> dict:
-        """Data of any thermostat at this location (location fields are shared)."""
-        return next(
-            (
-                thermostat
-                for thermostat in (self.coordinator.data or {}).values()
-                if thermostat.get("location_id") == self._location_id
-            ),
-            {},
-        )
-
-    @property
-    def available(self) -> bool:
-        """Return True while a thermostat at this location is reporting."""
-        return super().available and bool(self._location)
 
     @property
     def native_value(self) -> float | None:

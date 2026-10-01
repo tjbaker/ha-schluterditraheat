@@ -219,3 +219,15 @@ class TestApiStats:
         assert api_client.stats.logins == 1
         assert api_client.stats.requests == 1
         assert api_client.stats.last_login is not None
+
+
+async def test_fault_code_flagged(
+    hass: HomeAssistant, entry: MockConfigEntry, coordinator: SchluterDataUpdateCoordinator
+) -> None:
+    """Test a non-zero thermostat fault code produces an issue with its code."""
+    coordinator.data[40001]["error_code"] = 12
+
+    analysis = (await async_get_config_entry_diagnostics(hass, entry))["analysis"]
+
+    assert analysis["health"] == "degraded"
+    assert any("fault code 12" in issue for issue in analysis["issues"])

@@ -56,6 +56,7 @@ def mock_api():
     api = MagicMock()
     api.get_static_data = AsyncMock(return_value=MOCK_STATIC_DATA)
     api.get_device_attributes_bulk = AsyncMock(return_value=MOCK_DYNAMIC_DATA)
+    api.get_location_mode = AsyncMock(return_value="home")
     # A real client has no rate-limit reading until the first response.
     api.rate_limit = None
     return api

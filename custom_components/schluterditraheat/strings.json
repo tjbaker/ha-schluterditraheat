@@ -44,5 +44,16 @@
       "title": "Schluter account has too many active sessions",
       "description": "Schluter won't let Home Assistant sign in to {account} because the account already has the maximum number of active sessions. The Schluter app, the schluterditraheat.com website and Home Assistant all share that limit.\n\nThe integration keeps retrying on its own and this notice clears once it signs in. To free a session sooner, sign out of schluterditraheat.com in browsers you don't use, or stop other Home Assistant instances or integrations that use this account. Changing the account's password usually signs out every session at once."
     }
+  },
+  "entity": {
+    "select": {
+      "occupancy": {
+        "name": "Occupancy",
+        "state": {
+          "home": "Home",
+          "away": "Away"
+        }
+      }
+    }
   }
 }

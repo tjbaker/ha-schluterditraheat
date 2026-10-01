@@ -41,6 +41,7 @@ def api() -> MagicMock:
     mock.logout = AsyncMock()
     mock.get_static_data = AsyncMock(return_value=STATIC)
     mock.get_device_attributes_bulk = AsyncMock(return_value=DYNAMIC)
+    mock.get_location_mode = AsyncMock(return_value="home")
     mock.rate_limit = None
     mock.stats = ApiStats()
     return mock

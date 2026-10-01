@@ -10,9 +10,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
 from homeassistant.components.button import SERVICE_PRESS
+from homeassistant.components.select import ATTR_OPTION, SERVICE_SELECT_OPTION
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
@@ -35,7 +39,7 @@ from syrupy.assertion import SnapshotAssertion
 
 from custom_components.schluterditraheat.const import API_BASE_URL, DOMAIN
 
-from .conftest import DEVICE_ID, MockSession, load_fixture
+from .conftest import DEVICE_ID, LOCATION_ID, MockSession, load_fixture
 
 CLIMATE = "climate.foyer_floor_heat"
 ATTRIBUTE_URL = re.compile(rf"{re.escape(API_BASE_URL)}/device/{DEVICE_ID}/attribute$")
@@ -53,6 +57,8 @@ EXPECTED_ENTITIES = {
     "sensor.home_electricity_price": "location_245001_electricity_price",
     "switch.foyer_child_lock": "a1b2c3d4e5f60718_child_lock",
     "switch.foyer_early_start": "a1b2c3d4e5f60718_early_start",
+    "select.home_occupancy": "location_245001_occupancy",
+    "binary_sensor.foyer_fault": "a1b2c3d4e5f60718_fault",
 }
 
 
@@ -344,3 +350,90 @@ class TestSettingSwitches:
             )
 
         assert hass.states.get("switch.foyer_child_lock").state == "off"
+
+
+LOCATION_MODE_URL = re.compile(rf"{re.escape(API_BASE_URL)}/location/{LOCATION_ID}/mode$")
+
+
+def _mode_posts(mock_cloud: MockSession) -> list[dict[str, Any]]:
+    return [
+        call.kwargs["json"]
+        for (method, url), calls in mock_cloud.requests.items()
+        if method == "POST" and LOCATION_MODE_URL.match(str(url))
+        for call in calls
+    ]
+
+
+class TestLocationOccupancy:
+    """Home/Away for the whole location, as in the Schluter app."""
+
+    async def test_select_away_and_home(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test selecting Away posts the location mode and the thermostats follow."""
+        assert hass.states.get("select.home_occupancy").state == "home"
+
+        await hass.services.async_call(
+            SELECT_DOMAIN,
+            SERVICE_SELECT_OPTION,
+            {ATTR_ENTITY_ID: "select.home_occupancy", ATTR_OPTION: "away"},
+            blocking=True,
+        )
+
+        assert _mode_posts(mock_cloud) == [{"mode": "away"}]
+        # Shown immediately; the next poll (recorded "home") reconciles it
+        assert hass.states.get(CLIMATE).attributes["preset_mode"] in ("away", "none")
+
+    async def test_optimistic_state_before_refresh(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry
+    ) -> None:
+        """Test the location and its thermostats show Away straight after selecting it."""
+        coordinator = init_integration.runtime_data
+        with patch.object(coordinator, "async_request_refresh", new=AsyncMock()):
+            await hass.services.async_call(
+                SELECT_DOMAIN,
+                SERVICE_SELECT_OPTION,
+                {ATTR_ENTITY_ID: "select.home_occupancy", ATTR_OPTION: "away"},
+                blocking=True,
+            )
+
+        assert hass.states.get("select.home_occupancy").state == "away"
+        assert hass.states.get(CLIMATE).attributes["preset_mode"] == "away"
+
+    async def test_error(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test a rejected change raises and leaves the location at home."""
+        mock_cloud.fail_next("POST", LOCATION_MODE_URL, status=500, body="server error")
+
+        with pytest.raises(HomeAssistantError, match="occupancy"):
+            await hass.services.async_call(
+                SELECT_DOMAIN,
+                SERVICE_SELECT_OPTION,
+                {ATTR_ENTITY_ID: "select.home_occupancy", ATTR_OPTION: "away"},
+                blocking=True,
+            )
+
+        assert hass.states.get("select.home_occupancy").state == "home"
+
+
+class TestFaultSensor:
+    """The thermostat's fault code."""
+
+    async def test_no_fault(self, hass: HomeAssistant, init_integration: MockConfigEntry) -> None:
+        """Test the recorded code 0 reads as no problem."""
+        state = hass.states.get("binary_sensor.foyer_fault")
+        assert state.state == "off"
+        assert state.attributes["error_code"] == 0
+
+    async def test_fault_reported(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry
+    ) -> None:
+        """Test a non-zero code turns the problem sensor on and shows the code."""
+        coordinator = init_integration.runtime_data
+        coordinator.data[DEVICE_ID]["error_code"] = 4
+        coordinator.async_update_listeners()
+
+        state = hass.states.get("binary_sensor.foyer_fault")
+        assert state.state == "on"
+        assert state.attributes["error_code"] == 4
