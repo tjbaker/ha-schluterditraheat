@@ -19,6 +19,7 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 - **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
 - **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
 - **Device metadata** — model, software and hardware version, and serial number on the device page
+- **Diagnostics** — downloadable, redacted snapshot with a health check that flags rate limits, session-limit errors, weak Wi-Fi, GFCI faults and offline thermostats
 
 ## Installation
 
@@ -75,6 +76,18 @@ The thermostat's cloud backend enforces request limits and publishes its remaini
 - Recognizes the backend's JSON error codes (which it returns instead of HTTP 429): a daily-cap hit (`ACCDAYREQMAX`) pauses polling until midnight, an expired session (`USRSESSEXP`) re-authenticates transparently, and login/session limits are surfaced clearly.
 
 Because the scheduled poll is 300 seconds, a change made on the thermostat itself or in the Schluter phone app can take up to five minutes to appear in Home Assistant. Rather than make every installation poll faster than Sinopé asks, each thermostat exposes a **Refresh** button that forces an immediate poll — press it (or call `button.press` from an automation) when you want state right now. One press refreshes every thermostat on the account, and rapid presses are coalesced so the button cannot be used to hammer the API.
+
+## Troubleshooting
+
+Go to **Settings → Devices & Services → Schluter DITRA-HEAT → ⋮ → Download diagnostics**. The file's `analysis` section lists any problems found and what to do about them. Your email, password, session tokens, device serial numbers and location names are removed, so you can attach it to an issue.
+
+For more detail, enable debug logging:
+
+```yaml
+logger:
+  logs:
+    custom_components.schluterditraheat: debug
+```
 
 ## Limitations
 

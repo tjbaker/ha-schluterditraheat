@@ -12,6 +12,7 @@ from typing import Any
 import aiohttp
 
 from .const import API_BASE_URL, API_TIMEOUT
+from .stats import ApiStats
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -141,6 +142,7 @@ class SchluterApi:
         self._auth_lock = asyncio.Lock()
         # Latest rate-limit budget seen on any response (None until first call).
         self.rate_limit: RateLimit | None = None
+        self.stats = ApiStats()
 
     def _capture_rate_limit(self, headers: Any) -> None:
         """Record the rate-limit budget from a response's headers, if present."""
@@ -211,6 +213,8 @@ class SchluterApi:
                     if not self._session_id or not self._account_id:
                         raise SchluterApiError("Missing session ID or account ID in response")
 
+                    self.stats.note_login()
+
                     _LOGGER.debug(
                         "Authenticated successfully, account_id=%s, temp_unit=%s",
                         self._account_id,
@@ -230,6 +234,7 @@ class SchluterApi:
         """
         async with self._auth_lock:
             _LOGGER.debug("Session expired, re-authenticating")
+            self.stats.note_reauthentication()
             try:
                 await self.authenticate()
             except SchluterRateLimitError:
@@ -262,6 +267,7 @@ class SchluterApi:
             kwargs = dict(kwargs)
 
         url = f"{API_BASE_URL}{endpoint}"
+        self.stats.note_request()
 
         # Add session to both Cookie header and session-id header
         headers = kwargs.pop("headers", {})

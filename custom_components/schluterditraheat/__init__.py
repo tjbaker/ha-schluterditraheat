@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from datetime import timedelta
 from typing import Any
 
@@ -38,6 +39,7 @@ from .const import (
     STATIC_REFRESH_INTERVAL_POLLS,
 )
 from .energy import async_update_energy_statistics
+from .stats import EnergyStats, PollStats
 
 
 def _seconds_until_local_midnight(hass: HomeAssistant) -> float:
@@ -76,14 +78,18 @@ async def async_import_energy(
     if not coordinator.data:
         return
     if coordinator.daily_limit_reached:
+        coordinator.energy_stats.note_skipped("daily API request cap reached")
         _LOGGER.debug(
             "Skipping energy import: daily API request cap reached, "
             "waiting for the coordinator to recover"
         )
         return
     try:
-        await async_update_energy_statistics(hass, api, list(coordinator.data.values()))
+        imported = await async_update_energy_statistics(
+            hass, api, list(coordinator.data.values()), coordinator.energy_stats
+        )
     except SchluterDailyLimitError as err:
+        coordinator.energy_stats.note_error(err)
         # The energy import can be the first caller to hit the cap. Pause the
         # coordinator too, so the whole integration backs off together rather
         # than each timer discovering the cap independently.
@@ -93,8 +99,11 @@ async def async_import_energy(
             round(seconds),
             err,
         )
-    except Exception:  # noqa: BLE001 - energy import must never break setup
+    except Exception as err:  # noqa: BLE001 - energy import must never break setup
+        coordinator.energy_stats.note_error(err)
         _LOGGER.exception("Failed to update Schluter energy statistics")
+    else:
+        coordinator.energy_stats.note_run(imported)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -187,6 +196,9 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
         # API callers on this config entry (the energy import) so they pause
         # too; cleared by the first successful poll.
         self.daily_limit_reached: bool = False
+        # Diagnostics-only history; see stats.py.
+        self.poll_stats = PollStats()
+        self.energy_stats = EnergyStats()
 
     def _needs_static_refresh(self) -> bool:
         """Determine if static data needs to be refreshed."""
@@ -271,6 +283,19 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
             self._throttle_interval = None
 
     async def _async_update_data(self) -> dict[int, dict[str, Any]]:
+        """Poll the API, recording the outcome for diagnostics."""
+        self.poll_stats.note_start()
+        started = time.monotonic()
+        try:
+            data = await self._async_fetch_data()
+        except (ConfigEntryAuthFailed, UpdateFailed) as err:
+            self.poll_stats.note_failure((time.monotonic() - started) * 1000, err)
+            raise
+        missing = sorted(set(self._static_data or {}) - set(data))
+        self.poll_stats.note_success((time.monotonic() - started) * 1000, missing)
+        return data
+
+    async def _async_fetch_data(self) -> dict[int, dict[str, Any]]:
         """Fetch data from API.
 
         On first call and every STATIC_REFRESH_INTERVAL_POLLS polls, fetches
@@ -287,6 +312,7 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
                 static_data = await self.api.get_static_data()
                 self._static_data = static_data
                 self._polls_since_static_refresh = 0
+                self.poll_stats.note_static_refresh()
                 _LOGGER.debug(
                     "Refreshed static data, %d devices found",
                     len(static_data),
