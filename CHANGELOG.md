@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v2.0.0...2.1.0) (2026-10-01)
+## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.0.0...2.1.0) (2026-10-01)
 
 ### Features
 
@@ -13,7 +13,7 @@
 * **The setpoint range comes from the thermostat:** setpoints above 32 °C now work on thermostats configured for warmer floors (upstream [#7](https://github.com/KevinFarrell/ha-schluterditraheat/issues/7)) ([#8](https://github.com/tjbaker/ha-schluterditraheat/issues/8))
 * Re-entering your password names the account it's for, and adding an account that's already set up no longer signs in to Schluter ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13))
 
-## [2.0.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v1.1.0...v2.0.0) (2026-10-01)
+## [2.0.0](https://github.com/tjbaker/ha-schluterditraheat/compare/8646962...2.0.0) (2026-10-01)
 
 First release of the maintained fork of [KevinFarrell/ha-schluterditraheat](https://github.com/KevinFarrell/ha-schluterditraheat). It brings in the community pull requests that were waiting upstream, plus fixes found by testing on a DITRA-HEAT-E-RS1.
 
