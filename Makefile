@@ -1,4 +1,5 @@
-.PHONY: venv install test coverage lint format-check type-check check
+.PHONY: venv install test coverage lint format-check type-check check \
+	ha-up ha-down ha-restart ha-logs ha-reset
 
 PYTHON ?= python3.14
 VENV ?= .venv
@@ -29,3 +30,25 @@ type-check:
 	$(PY) -m mypy custom_components/schluterditraheat --check-untyped-defs
 
 check: coverage lint format-check type-check
+
+# Local Home Assistant in Docker (see dev-config/README.md)
+COMPOSE ?= docker compose
+
+ha-up:
+	$(COMPOSE) up -d
+	@echo "Home Assistant: http://localhost:8124"
+
+ha-down:
+	$(COMPOSE) down
+
+ha-restart:
+	$(COMPOSE) restart
+
+ha-logs:
+	$(COMPOSE) logs -f --tail=100
+
+# Wipes the HA config volume: onboarding, config entries and statistics
+ha-reset:
+	$(COMPOSE) down -v
+	$(COMPOSE) up -d
+	@echo "Home Assistant (fresh): http://localhost:8124"

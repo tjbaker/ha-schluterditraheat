@@ -1,0 +1,61 @@
+# Development configuration for Home Assistant.
+#
+# After the one-time onboarding (create any user), requests from localhost
+# and the Docker network log in automatically via the trusted_networks
+# auth provider. FOR LOCAL DEVELOPMENT ONLY.
+
+homeassistant:
+  name: Schluter Dev
+  latitude: 40.7128
+  longitude: -74.0060
+  elevation: 0
+  unit_system: us_customary
+  currency: USD
+  time_zone: America/New_York
+  country: US
+
+  auth_providers:
+    # Needed for onboarding and as a fallback login
+    - type: homeassistant
+    # Skip the login screen for local browsers. Docker Desktop forwards
+    # published ports from a gateway address in one of these private ranges.
+    - type: trusted_networks
+      trusted_networks:
+        - 127.0.0.1
+        - ::1
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+      allow_bypass_login: true
+
+frontend:
+config:
+
+logger:
+  default: info
+  logs:
+    # Every integration module (api, coordinator, entities, energy import)
+    custom_components.schluterditraheat: debug
+    # Very noisy; enable only for HTTP-level problems. It can print
+    # request headers, which include the session id.
+    # aiohttp.client: debug
+
+# Energy statistics import requires the recorder (manifest dependency).
+# Short-term history is trimmed for speed; long-term statistics are kept.
+recorder:
+  db_url: sqlite:////config/home-assistant_v2.db
+  purge_keep_days: 1
+  commit_interval: 30
+
+history:
+system_health:
+my:
+diagnostics:
+person:
+zone:
+sun:
+# Energy dashboard, to check the imported consumption statistic
+energy:
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml

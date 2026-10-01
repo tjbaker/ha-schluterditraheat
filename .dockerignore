@@ -1,0 +1,13 @@
+# Don't copy these into the Docker build context
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+coverage.xml
+.git/
+.github/
+tests/
+*.md
+.ruff_cache/
+.mypy_cache/
