@@ -207,3 +207,17 @@ async def test_login_failure_retries_setup(
 
     assert entry.state is ConfigEntryState.SETUP_RETRY
     assert _reauth_flows(hass) == []
+
+
+async def test_runtime_data_holds_bound_coordinator(
+    hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock
+) -> None:
+    """Test setup stores the coordinator on the entry and binds it to that entry."""
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+    assert isinstance(coordinator, SchluterDataUpdateCoordinator)
+    assert coordinator.config_entry is entry
+    assert coordinator.api is patched_api
+    assert DOMAIN not in hass.data

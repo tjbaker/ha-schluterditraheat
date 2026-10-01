@@ -9,7 +9,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
@@ -19,8 +18,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import SchluterDataUpdateCoordinator
-from .const import DOMAIN
+from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .entity import SchluterEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,11 +26,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Schluter sensor entities from a config entry."""
-    coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     entities: list[SensorEntity] = []
     for device_id, thermostat in coordinator.data.items():

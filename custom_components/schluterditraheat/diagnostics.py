@@ -6,11 +6,11 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
-from . import SchluterDataUpdateCoordinator
+from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .const import DOMAIN, RATE_LIMIT_REMAINING_FLOOR, SCAN_INTERVAL
 from .energy import statistic_id_for
 
@@ -37,7 +37,7 @@ def _seconds(interval: timedelta | None) -> float | None:
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant, entry: SchluterConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     diagnostics: dict[str, Any] = {
@@ -55,10 +55,7 @@ async def async_get_config_entry_diagnostics(
         ),
     }
 
-    coordinator: SchluterDataUpdateCoordinator | None = hass.data.get(DOMAIN, {}).get(
-        entry.entry_id
-    )
-    if coordinator is None:
+    if entry.state is not ConfigEntryState.LOADED:
         diagnostics["analysis"] = {
             "health": "not_loaded",
             "issues": ["The integration is not set up; see the Home Assistant log."],
@@ -66,6 +63,7 @@ async def async_get_config_entry_diagnostics(
         }
         return diagnostics
 
+    coordinator = entry.runtime_data
     diagnostics["api"] = _api_diagnostics(coordinator)
     diagnostics["coordinator"] = _coordinator_diagnostics(coordinator)
     diagnostics["devices"] = _device_diagnostics(coordinator)

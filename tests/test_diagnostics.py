@@ -8,6 +8,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -59,11 +60,12 @@ def coordinator(hass: HomeAssistant, entry: MockConfigEntry) -> SchluterDataUpda
     api.temperature_unit = "f"
     api.rate_limit = RateLimit(limit=120, remaining=100, reset=5, captured_at=0)
     api.stats = ApiStats(requests=12, logins=1)
-    coord = SchluterDataUpdateCoordinator(hass, api)
+    coord = SchluterDataUpdateCoordinator(hass, api, entry)
     coord.data = {40001: dict(THERMOSTAT)}
     coord._static_data = {40001: {}}
     coord.last_update_success = True
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
+    entry.runtime_data = coord
+    entry.mock_state(hass, ConfigEntryState.LOADED)
     return coord
 
 

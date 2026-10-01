@@ -112,7 +112,11 @@ async def async_import_energy(
         coordinator.energy_stats.note_run(imported)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+type SchluterConfigEntry = ConfigEntry[SchluterDataUpdateCoordinator]
+"""A config entry whose runtime_data is its coordinator (which holds the API client)."""
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: SchluterConfigEntry) -> bool:
     """Set up Schluter DITRA-HEAT from a config entry."""
     # Create API client
     session = async_get_clientsession(hass)
@@ -142,7 +146,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady(f"Unexpected response from the Schluter API: {err}") from err
 
     # Create coordinator
-    coordinator = SchluterDataUpdateCoordinator(hass, api)
+    coordinator = SchluterDataUpdateCoordinator(hass, api, entry)
 
     # Fetch initial data. If setup fails from here on, end the session we just
     # opened: HA retries setup with a fresh login, and leaked sessions count
@@ -153,9 +157,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await api.logout()
         raise
 
-    # Store coordinator
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator
+    entry.runtime_data = coordinator
 
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -182,15 +184,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: SchluterConfigEntry) -> bool:
     """Unload a config entry."""
-    # Unload platforms
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    # Remove coordinator and end its API session
+    # End the API session so it doesn't count toward the account's cap
     if unload_ok:
-        coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN].pop(entry.entry_id)
-        await coordinator.api.logout()
+        await entry.runtime_data.api.logout()
 
     return unload_ok
 
@@ -204,11 +204,19 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
     rate-limit / daily-cap responses.
     """
 
-    def __init__(self, hass: HomeAssistant, api: SchluterApi) -> None:
+    config_entry: SchluterConfigEntry | None
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        api: SchluterApi,
+        config_entry: SchluterConfigEntry | None = None,
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             name=DOMAIN,
             update_interval=SCAN_INTERVAL,
         )
