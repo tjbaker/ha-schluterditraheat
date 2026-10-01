@@ -1108,3 +1108,35 @@ class TestDeviceMetadataFetching:
         assert "rssi" not in result[40001]
         assert "sw_version" not in result[40001]
         assert "hw_version" not in result[40001]
+
+
+class TestSetpointLimitParsing:
+    """Test roomSetpointMin/Max parsing."""
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [(32, 32.0), (40.5, 40.5), ({"value": 35}, 35.0), (None, None), ("40", None), (True, None)],
+    )
+    def test_parse_number(self, value, expected):
+        """Test numbers and value-wrapped numbers parse; anything else is None."""
+        assert SchluterApi._parse_number(value) == expected
+
+    async def test_limits_in_bulk_attributes(self, api_client, mock_aiohttp):
+        """Test the reported limits land on each device's data."""
+        import re as _re
+
+        api_client._session_id = "test_session"
+        mock_aiohttp.get(
+            _re.compile(r".*/device/40001/attribute\?attributes=.*roomSetpointMax.*"),
+            payload={
+                "roomTemperatureDisplay": {"value": 21.0},
+                "setpointMode": "manual",
+                "roomSetpointMin": 5,
+                "roomSetpointMax": 40,
+            },
+        )
+
+        result = await api_client.get_device_attributes_bulk([40001])
+
+        assert result[40001]["min_temp"] == 5.0
+        assert result[40001]["max_temp"] == 40.0

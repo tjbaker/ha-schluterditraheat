@@ -143,13 +143,15 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
 
     @property
     def min_temp(self) -> float:
-        """Return the minimum temperature."""
-        return MIN_TEMP_C
+        """Return the thermostat's configured minimum setpoint."""
+        value = self._thermostat.get("min_temp")
+        return MIN_TEMP_C if value is None else value
 
     @property
     def max_temp(self) -> float:
-        """Return the maximum temperature."""
-        return MAX_TEMP_C
+        """Return the thermostat's configured maximum setpoint."""
+        value = self._thermostat.get("max_temp")
+        return MAX_TEMP_C if value is None else value
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

@@ -400,6 +400,9 @@ class SchluterApi:
             "loadWattOutput2",
             "signature",
             "wifiRssi",
+            # Setpoint limits configured on the thermostat, in Celsius
+            "roomSetpointMin",
+            "roomSetpointMax",
         ]
 
         endpoint = f"/device/{device_id}/attribute?attributes={','.join(attributes)}"
@@ -511,6 +514,8 @@ class SchluterApi:
                 "air_floor_mode": raw.get("airFloorMode"),
                 "gfci_status": raw.get("gfciStatus"),
                 "load_watt": self._parse_load_watt(raw),
+                "min_temp": self._parse_number(raw.get("roomSetpointMin")),
+                "max_temp": self._parse_number(raw.get("roomSetpointMax")),
             }
 
             # Only set keys the device actually reported, so callers can tell
@@ -523,6 +528,15 @@ class SchluterApi:
             result[device_id] = parsed
 
         return result
+
+    @staticmethod
+    def _parse_number(value: Any) -> float | None:
+        """A numeric attribute as a float, or None when absent or malformed."""
+        if isinstance(value, dict):
+            value = value.get("value")
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return None
+        return float(value)
 
     @staticmethod
     def _parse_load_watt(raw: dict[str, Any]) -> int:
@@ -702,6 +716,7 @@ class SchluterApi:
 
         try:
             await self._request("GET", "/logout", _retry_auth=False)
+            _LOGGER.debug("Logged out of the Schluter session")
         except SchluterApiError as err:
             _LOGGER.debug("Logout failed: %s", err)
         finally:
