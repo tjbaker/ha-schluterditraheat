@@ -7,7 +7,7 @@ against your real thermostat.
 ## Quick start
 
 ```bash
-docker compose up -d
+make ha-up        # or: docker compose up -d
 ```
 
 1. Open http://localhost:8124. Port 8124 is used so this can run alongside
@@ -21,12 +21,13 @@ docker compose up -d
 
 ```bash
 # Edit code under custom_components/schluterditraheat/, then:
-docker compose restart
+make ha-restart
 
-docker compose logs -f                           # all logs
-docker compose logs -f | grep -i schluterditraheat
+make ha-logs                          # follow logs
+make ha-logs | grep -i schluterditraheat
 
-docker compose down -v && docker compose up -d   # reset everything
+make ha-down                          # stop
+make ha-reset                         # wipe onboarding, config entries and statistics
 ```
 
 ## What this config sets up
