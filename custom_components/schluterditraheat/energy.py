@@ -14,10 +14,17 @@ are simply absent from the cumulative sum.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.recorder import get_instance
+from homeassistant.components.recorder.models import (
+    StatisticData,
+    StatisticMeanType,
+    StatisticMetaData,
+)
 from homeassistant.components.recorder.statistics import (
+    StatisticsRow,
     async_add_external_statistics,
     get_last_statistics,
 )
@@ -28,18 +35,6 @@ from homeassistant.util import dt as dt_util
 from .api import SchluterApi, SchluterApiError
 from .const import DOMAIN
 
-# ``StatisticMeanType`` only exists from Home Assistant 2025.4, and the manifest
-# declares 2024.1.0 as the minimum, so import it defensively rather than raising
-# that floor. Older cores fall back to ``has_mean``; newer ones warn when
-# ``mean_type`` is missing and stop accepting its absence in Home Assistant
-# 2026.11.
-try:
-    from homeassistant.components.recorder.models import StatisticMeanType
-
-    _MEAN_TYPE_NONE: Any | None = StatisticMeanType.NONE
-except ImportError:  # Home Assistant < 2025.4
-    _MEAN_TYPE_NONE = None
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -48,12 +43,9 @@ def statistic_id_for(identifier: str) -> str:
     return f"{DOMAIN}:energy_{identifier.lower()}"
 
 
-def _row_start(row: dict[str, Any]) -> Any:
-    """Normalize a statistics row's start to a tz-aware datetime."""
-    start = row.get("start")
-    if isinstance(start, (int, float)):
-        return dt_util.utc_from_timestamp(start)
-    return start
+def _row_start(row: StatisticsRow) -> datetime:
+    """Return a statistics row's start (a UTC timestamp) as a datetime."""
+    return dt_util.utc_from_timestamp(row["start"])
 
 
 async def async_update_energy_statistics(
@@ -108,9 +100,9 @@ async def async_update_energy_statistics(
         if not rows:
             continue
 
-        metadata: dict[str, Any] = {
-            "has_mean": False,
+        metadata: StatisticMetaData = {
             "has_sum": True,
+            "mean_type": StatisticMeanType.NONE,
             "name": f"{name} Energy",
             "source": DOMAIN,
             "statistic_id": statistic_id,
@@ -119,10 +111,10 @@ async def async_update_energy_statistics(
             "unit_class": "energy",
             "unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
         }
-        if _MEAN_TYPE_NONE is not None:
-            # ``has_mean`` is False, so the equivalent mean type is NONE.
-            metadata["mean_type"] = _MEAN_TYPE_NONE
-        async_add_external_statistics(hass, metadata, rows)
+        statistics = [
+            StatisticData(start=row["start"], state=row["state"], sum=row["sum"]) for row in rows
+        ]
+        async_add_external_statistics(hass, metadata, statistics)
         _LOGGER.debug(
             "Imported %d energy statistics rows for %s (%s)",
             len(rows),

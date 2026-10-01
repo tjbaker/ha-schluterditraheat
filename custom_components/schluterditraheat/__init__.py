@@ -158,7 +158,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
+class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, Any]]]):
     """Class to manage fetching Schluter data from the API.
 
     Caches static data (locations, devices, groups) and refreshes it hourly.
@@ -176,7 +176,7 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=SCAN_INTERVAL,
         )
         self.api = api
-        self._static_data: dict[int, dict] | None = None
+        self._static_data: dict[int, dict[str, Any]] | None = None
         self._polls_since_static_refresh: int = 0
         # Two independent poll-interval overrides. The effective interval is
         # derived from them in one place (_recompute_interval); handlers only
@@ -270,7 +270,7 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             self._throttle_interval = None
 
-    async def _async_update_data(self) -> dict[int, dict]:
+    async def _async_update_data(self) -> dict[int, dict[str, Any]]:
         """Fetch data from API.
 
         On first call and every STATIC_REFRESH_INTERVAL_POLLS polls, fetches
@@ -282,18 +282,20 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
         """
         try:
             # Refresh static data if needed
-            if self._needs_static_refresh():
-                self._static_data = await self.api.get_static_data()
+            static_data = self._static_data
+            if static_data is None or self._needs_static_refresh():
+                static_data = await self.api.get_static_data()
+                self._static_data = static_data
                 self._polls_since_static_refresh = 0
                 _LOGGER.debug(
                     "Refreshed static data, %d devices found",
-                    len(self._static_data),
+                    len(static_data),
                 )
 
             self._polls_since_static_refresh += 1
 
             # Fetch dynamic attributes for known devices
-            device_ids = list(self._static_data.keys())
+            device_ids = list(static_data)
             dynamic_data = await self.api.get_device_attributes_bulk(device_ids)
 
             # Success: clear any backoff, refresh the budget-derived defer from
@@ -303,8 +305,8 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator):
             self._recompute_interval()
 
             # Merge static + dynamic, same shape as get_all_thermostats()
-            result: dict[int, dict] = {}
-            for device_id, static in self._static_data.items():
+            result: dict[int, dict[str, Any]] = {}
+            for device_id, static in static_data.items():
                 if device_id not in dynamic_data:
                     continue
                 result[device_id] = {**static, **dynamic_data[device_id]}
