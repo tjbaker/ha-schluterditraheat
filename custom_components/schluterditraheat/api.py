@@ -496,8 +496,6 @@ class SchluterApi:
                 _LOGGER.error("Failed to get attributes for device %s: %s", device_id, err)
                 continue
 
-            _LOGGER.debug("Raw attributes for device %s: %s", device_id, raw)
-
             parsed = {
                 "current_temperature": raw.get("roomTemperatureDisplay", {}).get("value"),
                 "target_temperature": raw.get("roomSetpoint"),
