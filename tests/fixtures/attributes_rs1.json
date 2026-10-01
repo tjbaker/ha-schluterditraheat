@@ -1,7 +1,9 @@
 {
   "airFloorMode": "floor",
+  "earlyStartCfg": "off",
   "floorSetpointPwm": 0,
   "gfciStatus": "ok",
+  "keyboardLock": "unlock",
   "loadWattOutput1": 924,
   "loadWattOutput2": 0,
   "occupancyMode": "home",

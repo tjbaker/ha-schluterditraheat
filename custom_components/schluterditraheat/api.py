@@ -403,6 +403,9 @@ class SchluterApi:
             # Setpoint limits configured on the thermostat, in Celsius
             "roomSetpointMin",
             "roomSetpointMax",
+            # Thermostat settings exposed as switches
+            "keyboardLock",
+            "earlyStartCfg",
         ]
 
         endpoint = f"/device/{device_id}/attribute?attributes={','.join(attributes)}"
@@ -519,6 +522,8 @@ class SchluterApi:
                 "load_watt": self._parse_load_watt(raw),
                 "min_temp": self._parse_number(raw.get("roomSetpointMin")),
                 "max_temp": self._parse_number(raw.get("roomSetpointMax")),
+                "child_lock": self._parse_switch(raw.get("keyboardLock"), "lock", "unlock"),
+                "early_start": self._parse_switch(raw.get("earlyStartCfg"), "on", "off"),
             }
 
             # Only set keys the device actually reported, so callers can tell
@@ -531,6 +536,15 @@ class SchluterApi:
             result[device_id] = parsed
 
         return result
+
+    @staticmethod
+    def _parse_switch(value: Any, on: str, off: str) -> bool | None:
+        """An on/off setting as a bool, or None when absent or unrecognized."""
+        if value == on:
+            return True
+        if value == off:
+            return False
+        return None
 
     @staticmethod
     def _parse_number(value: Any) -> float | None:

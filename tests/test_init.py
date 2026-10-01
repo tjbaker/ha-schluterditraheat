@@ -296,3 +296,13 @@ class TestSessionLimitIssue:
         issue = strings["issues"]["session_limit"]
         assert issue["title"]
         assert "{account}" in issue["description"]
+
+
+async def test_settings_switches_need_reported_values(
+    hass: HomeAssistant, entry: MockConfigEntry, patched_api: MagicMock
+) -> None:
+    """Test no Child lock or Early start switch is created for a thermostat that doesn't report them."""
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.states.async_entity_ids("switch") == []

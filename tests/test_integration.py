@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN
 from homeassistant.components.button import SERVICE_PRESS
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.climate import (
     ATTR_HVAC_MODE,
     ATTR_PRESET_MODE,
@@ -50,6 +51,8 @@ EXPECTED_ENTITIES = {
     "sensor.foyer_wi_fi_signal": "a1b2c3d4e5f60718_wifi_signal",
     "button.foyer_refresh": "a1b2c3d4e5f60718_refresh",
     "sensor.home_electricity_price": "location_245001_electricity_price",
+    "switch.foyer_child_lock": "a1b2c3d4e5f60718_child_lock",
+    "switch.foyer_early_start": "a1b2c3d4e5f60718_early_start",
 }
 
 
@@ -257,3 +260,54 @@ async def test_refresh_button_polls_now(
     await hass.async_block_till_done()
 
     assert attribute_reads() == before + 1
+
+
+class TestSettingSwitches:
+    """Child lock and Early start, written as the values the cloud accepts.
+
+    Values confirmed against a DITRA-HEAT-E-RS1: keyboardLock lock/unlock,
+    earlyStartCfg on/off.
+    """
+
+    @pytest.mark.parametrize(
+        ("entity_id", "attribute", "on_value", "off_value"),
+        [
+            ("switch.foyer_child_lock", "keyboardLock", "lock", "unlock"),
+            ("switch.foyer_early_start", "earlyStartCfg", "on", "off"),
+        ],
+    )
+    async def test_turn_on_and_off(
+        self,
+        hass: HomeAssistant,
+        init_integration: MockConfigEntry,
+        mock_cloud: MockSession,
+        entity_id: str,
+        attribute: str,
+        on_value: str,
+        off_value: str,
+    ) -> None:
+        """Test each switch reports the recorded state and writes its attribute."""
+        assert hass.states.get(entity_id).state == "off"
+
+        for service in (SERVICE_TURN_ON, SERVICE_TURN_OFF):
+            await hass.services.async_call(
+                SWITCH_DOMAIN, service, {ATTR_ENTITY_ID: entity_id}, blocking=True
+            )
+
+        assert _writes(mock_cloud) == [{attribute: on_value}, {attribute: off_value}]
+
+    async def test_write_error(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test a rejected write raises a HomeAssistantError and leaves the switch off."""
+        mock_cloud.fail_next("PUT", ATTRIBUTE_URL, status=500, body="server error")
+
+        with pytest.raises(HomeAssistantError, match="Child lock"):
+            await hass.services.async_call(
+                SWITCH_DOMAIN,
+                SERVICE_TURN_ON,
+                {ATTR_ENTITY_ID: "switch.foyer_child_lock"},
+                blocking=True,
+            )
+
+        assert hass.states.get("switch.foyer_child_lock").state == "off"

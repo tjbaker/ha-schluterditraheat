@@ -460,3 +460,105 @@
     'state': '0.0885',
   })
 # ---
+# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_child_lock-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'switch.foyer_child_lock',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Child lock',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:lock',
+    'original_name': 'Child lock',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'a1b2c3d4e5f60718_child_lock',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_child_lock-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Child lock',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:lock',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.foyer_child_lock',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_early_start-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'switch',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'switch.foyer_early_start',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Early start',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:clock-start',
+    'original_name': 'Early start',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'a1b2c3d4e5f60718_early_start',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[switch.foyer_early_start-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Early start',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:clock-start',
+    }),
+    'context': <ANY>,
+    'entity_id': 'switch.foyer_early_start',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
