@@ -1,6 +1,9 @@
 {
   "airFloorMode": "floor",
   "earlyStartCfg": "off",
+  "errorCodeSet1": {
+    "raw": 0
+  },
   "floorSetpointPwm": 0,
   "gfciStatus": "ok",
   "keyboardLock": "unlock",

@@ -186,6 +186,13 @@ def _analyze(coordinator: SchluterDataUpdateCoordinator) -> dict[str, Any]:
             recommendations.append(
                 f"{label}: move the router or add an access point closer to the thermostat."
             )
+        code = thermostat.get("error_code")
+        if isinstance(code, int) and code != 0:
+            issues.append(f"{label}: thermostat reports fault code {code}.")
+            recommendations.append(
+                f"{label}: check the thermostat's display and the Schluter app for the "
+                "fault, and include the code when contacting Schluter support."
+            )
         gfci = thermostat.get("gfci_status")
         if gfci is not None and gfci != "ok":
             issues.append(f"{label}: GFCI reports '{gfci}'. Heating is cut off.")

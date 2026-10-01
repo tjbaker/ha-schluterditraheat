@@ -406,6 +406,8 @@ class SchluterApi:
             # Thermostat settings exposed as switches
             "keyboardLock",
             "earlyStartCfg",
+            # Fault code; 0 when the thermostat reports no error
+            "errorCodeSet1",
         ]
 
         endpoint = f"/device/{device_id}/attribute?attributes={','.join(attributes)}"
@@ -441,6 +443,16 @@ class SchluterApi:
     async def set_occupancy(self, device_id: int, occupancy: str) -> None:
         """Set a thermostat's occupancy: 'home' or 'away'."""
         await self.set_device_attribute(device_id, "occupancyMode", occupancy)
+
+    async def get_location_mode(self, location_id: int) -> str | None:
+        """Return a location's occupancy mode ('home' or 'away')."""
+        data = await self._request("GET", f"/location/{location_id}/mode")
+        return data.get("mode") if isinstance(data, dict) else None
+
+    async def set_location_mode(self, location_id: int, mode: str) -> None:
+        """Set every thermostat at a location to 'home' or 'away'."""
+        await self._request("POST", f"/location/{location_id}/mode", json={"mode": mode})
+        _LOGGER.debug("Set location %s mode to %s", location_id, mode)
 
     async def get_static_data(self) -> dict[int, dict[str, Any]]:
         """Get static metadata for all devices.
@@ -526,6 +538,7 @@ class SchluterApi:
                 "occupancy_mode": raw.get("occupancyMode"),
                 "child_lock": self._parse_switch(raw.get("keyboardLock"), "lock", "unlock"),
                 "early_start": self._parse_switch(raw.get("earlyStartCfg"), "on", "off"),
+                "error_code": self._parse_error_code(raw.get("errorCodeSet1")),
             }
 
             # Only set keys the device actually reported, so callers can tell
@@ -538,6 +551,15 @@ class SchluterApi:
             result[device_id] = parsed
 
         return result
+
+    @staticmethod
+    def _parse_error_code(value: Any) -> int | None:
+        """The thermostat's raw fault code (0 = no fault), or None when absent."""
+        if isinstance(value, dict):
+            value = value.get("raw")
+        if isinstance(value, bool) or not isinstance(value, int):
+            return None
+        return value
 
     @staticmethod
     def _parse_switch(value: Any, on: str, off: str) -> bool | None:

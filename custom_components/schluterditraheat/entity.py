@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import SchluterDataUpdateCoordinator
@@ -80,3 +80,50 @@ class SchluterEntity(CoordinatorEntity[SchluterDataUpdateCoordinator]):
                 info[key] = value
 
         return info
+
+
+class SchluterLocationEntity(CoordinatorEntity[SchluterDataUpdateCoordinator]):
+    """Base for entities that belong to a Schluter location (a home), not a thermostat.
+
+    Every location entity registers the same service device, so the platforms
+    cannot drift apart.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(self, coordinator: SchluterDataUpdateCoordinator, location_id: int) -> None:
+        """Initialize the entity."""
+        super().__init__(coordinator)
+        self._location_id = location_id
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"location_{location_id}")},
+            name=self._location.get("location_name") or "Schluter location",
+            manufacturer=DEFAULT_MANUFACTURER,
+            entry_type=DeviceEntryType.SERVICE,
+        )
+
+    @property
+    def _location(self) -> dict[str, Any]:
+        """Data of any thermostat at this location (location fields are shared)."""
+        return next(
+            (
+                thermostat
+                for thermostat in (self.coordinator.data or {}).values()
+                if thermostat.get("location_id") == self._location_id
+            ),
+            {},
+        )
+
+    @property
+    def _thermostat_ids(self) -> list[int]:
+        """Device ids of the thermostats at this location."""
+        return [
+            device_id
+            for device_id, thermostat in (self.coordinator.data or {}).items()
+            if thermostat.get("location_id") == self._location_id
+        ]
+
+    @property
+    def available(self) -> bool:
+        """Return True while a thermostat at this location is reporting."""
+        return super().available and bool(self._location)

@@ -59,6 +59,58 @@
     }),
   ])
 # ---
+# name: TestRegistry.test_entities_and_states_snapshot[binary_sensor.foyer_fault-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'binary_sensor',
+    'entity_category': None,
+    'entity_id': 'binary_sensor.foyer_fault',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Fault',
+    'options': dict({
+    }),
+    'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
+    'original_icon': None,
+    'original_name': 'Fault',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': None,
+    'unique_id': 'a1b2c3d4e5f60718_fault',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[binary_sensor.foyer_fault-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      'error_code': 0,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Foyer Fault',
+    }),
+    'context': <ANY>,
+    'entity_id': 'binary_sensor.foyer_fault',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
 # name: TestRegistry.test_entities_and_states_snapshot[binary_sensor.foyer_gfci_status-entry]
   EntityRegistryEntrySnapshot({
     'aliases': list([
@@ -240,6 +292,66 @@
     'last_reported': <ANY>,
     'last_updated': <ANY>,
     'state': 'off',
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.home_occupancy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': list([
+      None,
+    ]),
+    'area_id': None,
+    'capabilities': dict({
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'home',
+        'away',
+      ]),
+    }),
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'select',
+    'entity_category': None,
+    'entity_id': 'select.home_occupancy',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Occupancy',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': 'mdi:home-account',
+    'original_name': 'Occupancy',
+    'platform': 'schluterditraheat',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'occupancy',
+    'unique_id': 'location_245001_occupancy',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: TestRegistry.test_entities_and_states_snapshot[select.home_occupancy-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Home Occupancy',
+      <EntityStateAttribute.ICON: 'icon'>: 'mdi:home-account',
+      <SelectEntityCapabilityAttribute.OPTIONS: 'options'>: list([
+        'home',
+        'away',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'select.home_occupancy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'home',
   })
 # ---
 # name: TestRegistry.test_entities_and_states_snapshot[sensor.foyer_heating_output-entry]

@@ -205,6 +205,7 @@ def api_client(mock_session: _SessionView):
 
 FIXTURES = ROOT / "tests" / "fixtures"
 DEVICE_ID = 995001
+LOCATION_ID = 245001
 
 
 def load_fixture(name: str) -> Any:
@@ -229,10 +230,16 @@ def mock_cloud(mock_aiohttp: MockSession) -> MockSession:
         ("GET", rf"{base}/groups\?.*"): "groups.json",
         ("GET", rf"{base}/device/{DEVICE_ID}/attribute\?.*"): "attributes_rs1.json",
         ("GET", rf"{base}/device/{DEVICE_ID}/consumption/hourly$"): "consumption_hourly.json",
+        ("GET", rf"{base}/location/{LOCATION_ID}/mode$"): "location_mode.json",
     }
     for (method, pattern), name in routes.items():
         mock_aiohttp._add(method, re.compile(pattern), payload=load_fixture(name), repeat=True)
     mock_aiohttp.put(re.compile(rf"{base}/device/{DEVICE_ID}/attribute$"), payload={}, repeat=True)
+    mock_aiohttp.post(
+        re.compile(rf"{base}/location/{LOCATION_ID}/mode$"),
+        payload=load_fixture("location_mode_set.json"),
+        repeat=True,
+    )
     mock_aiohttp.get(re.compile(rf"{base}/logout$"), payload={}, repeat=True)
     return mock_aiohttp
 

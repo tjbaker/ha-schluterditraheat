@@ -19,6 +19,8 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 - **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
 - **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
 - **Away preset** — switches the thermostat to the away temperature set in the Schluter app, and back
+- **Home/Away for the whole home** — switch every thermostat at a location between Home and Away at once, like the Schluter app's mode; useful with presence detection
+- **Fault sensor** — turns on when the thermostat reports a fault code
 - **Thermostat settings** — Child lock (locks the thermostat's touchscreen) and Early start (pre-heats so the floor reaches the scheduled temperature on time)
 - **Device metadata** — model, software and hardware version, and serial number on the device page
 - **Diagnostics** — downloadable, redacted snapshot with a health check that flags rate limits, session-limit errors, weak Wi-Fi, GFCI faults and offline thermostats
@@ -59,6 +61,8 @@ Each thermostat creates the following entities, grouped under a single device:
 | Refresh | Button | Force an immediate poll of the cloud (see below) |
 | Wi-Fi Signal | Sensor | Signal strength in dBm (diagnostic) |
 | Electricity price | Sensor | Price per kWh set for the location in the Schluter app, on a separate device for the location. Only created when a price is set. |
+| Fault | Binary Sensor | On when the thermostat reports a fault; the raw code is in the `error_code` attribute (problem device class) |
+| Occupancy | Select | Home or Away for every thermostat at the location, on the location device |
 | Child lock | Switch | Locks the thermostat's touchscreen (configuration) |
 | Early start | Switch | Heats ahead of schedule changes so the floor is at temperature on time (configuration) |
 

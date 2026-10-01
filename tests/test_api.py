@@ -1152,3 +1152,22 @@ class TestSwitchParsing:
     def test_parse_switch(self, value, expected):
         """Test the two known values map to booleans and anything else to None."""
         assert SchluterApi._parse_switch(value, "lock", "unlock") is expected
+
+
+class TestErrorCodeParsing:
+    """Test errorCodeSet1 parsing."""
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            ({"raw": 0}, 0),
+            ({"raw": 12}, 12),
+            (7, 7),
+            (None, None),
+            ({"raw": "x"}, None),
+            (True, None),
+        ],
+    )
+    def test_parse_error_code(self, value, expected):
+        """Test the raw code is extracted and anything malformed is None."""
+        assert SchluterApi._parse_error_code(value) == expected

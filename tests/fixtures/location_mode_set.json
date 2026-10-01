@@ -1,0 +1,10 @@
+{
+  "errors": [],
+  "mode": "away",
+  "success": [
+    {
+      "resource$id": 995001,
+      "resource$type": "device"
+    }
+  ]
+}

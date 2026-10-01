@@ -62,6 +62,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
     Platform.CLIMATE,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
@@ -348,6 +349,25 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
             self._session_limit_raised = False
         return data
 
+    async def _async_fetch_location_modes(
+        self, static_data: dict[int, dict[str, Any]]
+    ) -> dict[int, str | None]:
+        """Read each location's home/away mode (one request per location).
+
+        Rate, daily-cap and auth errors propagate to the poll's handling; any
+        other failure just leaves that location's mode unknown this poll.
+        """
+        modes: dict[int, str | None] = {}
+        for location_id in {s["location_id"] for s in static_data.values() if "location_id" in s}:
+            try:
+                modes[location_id] = await self.api.get_location_mode(location_id)
+            except SchluterRateLimitError, SchluterAuthenticationError:
+                raise
+            except SchluterApiError as err:
+                _LOGGER.debug("Location %s mode unavailable: %s", location_id, err)
+                modes[location_id] = None
+        return modes
+
     async def _async_fetch_data(self) -> dict[int, dict[str, Any]]:
         """Fetch data from API.
 
@@ -383,12 +403,18 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
             self._update_throttle_state()
             self._recompute_interval()
 
+            location_modes = await self._async_fetch_location_modes(static_data)
+
             # Merge static + dynamic, same shape as get_all_thermostats()
             result: dict[int, dict[str, Any]] = {}
             for device_id, static in static_data.items():
                 if device_id not in dynamic_data:
                     continue
-                result[device_id] = {**static, **dynamic_data[device_id]}
+                result[device_id] = {
+                    **static,
+                    **dynamic_data[device_id],
+                    "location_mode": location_modes.get(static.get("location_id", -1)),
+                }
 
             return result
 
