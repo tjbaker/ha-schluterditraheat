@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.climate import (
+    PRESET_AWAY,
     ClimateEntity,
     ClimateEntityFeature,
     HVACAction,
@@ -26,6 +27,8 @@ from .const import (
     MODE_FROST_SAFE,
     MODE_MANUAL,
     MODE_OFF,
+    OCCUPANCY_AWAY,
+    OCCUPANCY_HOME,
     PRESET_FROST_PROTECTION,
     PRESET_NONE,
 )
@@ -64,7 +67,7 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
         | ClimateEntityFeature.PRESET_MODE
     )
     _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF, HVACMode.AUTO]
-    _attr_preset_modes = [PRESET_NONE, PRESET_FROST_PROTECTION]
+    _attr_preset_modes = [PRESET_NONE, PRESET_AWAY, PRESET_FROST_PROTECTION]
 
     def __init__(self, coordinator: SchluterDataUpdateCoordinator, device_id: int) -> None:
         """Initialize the thermostat."""
@@ -128,7 +131,9 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
     @property
     def preset_mode(self) -> str | None:
         """Return current preset mode."""
-        thermostat = self.coordinator.data.get(self._device_id, {})
+        thermostat = self._thermostat
+        if thermostat.get("occupancy_mode") == OCCUPANCY_AWAY:
+            return PRESET_AWAY
         mode = thermostat.get("mode")
         if mode == MODE_FROST_SAFE:
             return PRESET_FROST_PROTECTION
@@ -204,22 +209,41 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
         await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
-        """Set new preset mode."""
-        if preset_mode == PRESET_FROST_PROTECTION:
-            mode = MODE_FROST_SAFE
+        """Set new preset mode.
+
+        Away is occupancy and Frost protection is a setpoint mode, which the
+        thermostat tracks separately; each preset sets both so only one is
+        active. Leaving Away never turns heating on by itself.
+        """
+        thermostat = self._thermostat
+        away = thermostat.get("occupancy_mode") == OCCUPANCY_AWAY
+        frost = thermostat.get("mode") == MODE_FROST_SAFE
+        occupancy: str | None
+        mode: str | None
+
+        if preset_mode == PRESET_AWAY:
+            occupancy, mode = OCCUPANCY_AWAY, None
+        elif preset_mode == PRESET_FROST_PROTECTION:
+            occupancy, mode = (OCCUPANCY_HOME if away else None), MODE_FROST_SAFE
         elif preset_mode == PRESET_NONE:
-            mode = MODE_MANUAL
+            occupancy, mode = (OCCUPANCY_HOME if away else None), (MODE_MANUAL if frost else None)
         else:
             _LOGGER.error("Unsupported preset mode: %s", preset_mode)
             return
 
         try:
-            await self.coordinator.api.set_mode(self._device_id, mode)
+            if occupancy is not None:
+                await self.coordinator.api.set_occupancy(self._device_id, occupancy)
+            if mode is not None:
+                await self.coordinator.api.set_mode(self._device_id, mode)
         except SchluterApiError as err:
             raise HomeAssistantError(f"Failed to set preset mode: {err}") from err
 
         if self._device_id in self.coordinator.data:
-            self.coordinator.data[self._device_id]["mode"] = mode
+            if occupancy is not None:
+                self.coordinator.data[self._device_id]["occupancy_mode"] = occupancy
+            if mode is not None:
+                self.coordinator.data[self._device_id]["mode"] = mode
             self.async_write_ha_state()
 
         await self.coordinator.async_request_refresh()

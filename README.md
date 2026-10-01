@@ -12,12 +12,13 @@ Tested with the **DITRA-HEAT-E-RS1** thermostat. Other models using the same clo
 
 ## Features
 
-- **Climate entity** — control temperature and mode (Auto, Heat/Manual, Off) per thermostat
+- **Climate entity** — control temperature, mode (Auto, Heat/Manual, Off) and presets (Away, Frost protection) per thermostat
 - **Heating output sensor** — track heating output percentage with history graphs and long-term statistics
 - **Power sensor** — instantaneous power draw (watts) of the connected heating load
 - **Energy dashboard** — energy consumption imported into long-term statistics, backfilled with about a month of history on first setup, plus the electricity price from the Schluter app for cost tracking
 - **GFCI fault sensor** — binary sensor for ground fault detection, enabling safety automations
 - **Wi-Fi signal sensor** — diagnostic sensor reporting signal strength in dBm
+- **Away preset** — switches the thermostat to the away temperature set in the Schluter app, and back
 - **Thermostat settings** — Child lock (locks the thermostat's touchscreen) and Early start (pre-heats so the floor reaches the scheduled temperature on time)
 - **Device metadata** — model, software and hardware version, and serial number on the device page
 - **Diagnostics** — downloadable, redacted snapshot with a health check that flags rate limits, session-limit errors, weak Wi-Fi, GFCI faults and offline thermostats
@@ -105,7 +106,6 @@ This integration supports monitoring and basic control. The following are **not*
 
 - Managing or editing heating schedules (schedules configured in the Schluter app are respected in Auto mode)
 - Changing the air/floor sensor mode
-- Away mode (switching the location between home and away)
 - Firmware updates
 - Adding or removing thermostats (requires reloading the integration)
 - Recovering energy history older than the cloud's rolling window — it serves only about the last two days of hourly consumption, so if Home Assistant is offline for longer than that, the missed hours are lost and are simply absent from the Energy dashboard's totals
