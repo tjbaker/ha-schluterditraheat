@@ -146,6 +146,10 @@ class MockSession:
     def put(self, url: str | re.Pattern[str], **kwargs: Any) -> None:
         self._add("PUT", url, **kwargs)
 
+    def fail_next(self, method: str, url: str | re.Pattern[str], **kwargs: Any) -> None:
+        """Answer the next matching request with this response, ahead of other routes."""
+        self._routes.insert(0, _MockRoute(method=method, url=url, **kwargs))
+
     # Request dispatch.
     def _dispatch(self, method: str, url: str, kwargs: dict) -> _MockResponse:
         request_url = URL(url)
@@ -197,3 +201,84 @@ def api_client(mock_session: _SessionView):
     from custom_components.schluterditraheat.api import SchluterApi
 
     return SchluterApi(mock_session, "test@example.com", "password123")
+
+
+FIXTURES = ROOT / "tests" / "fixtures"
+DEVICE_ID = 995001
+
+
+def load_fixture(name: str) -> Any:
+    """Load a JSON payload from tests/fixtures."""
+    return json.loads((FIXTURES / name).read_text())
+
+
+@pytest.fixture
+def mock_cloud(mock_aiohttp: MockSession) -> MockSession:
+    """Serve one RS1 thermostat from recorded/reconstructed cloud payloads.
+
+    Routes repeat, so polls, refreshes and reloads keep working; tests can
+    register earlier, non-repeating routes to inject failures.
+    """
+    from custom_components.schluterditraheat.const import API_BASE_URL
+
+    base = re.escape(API_BASE_URL)
+    routes = {
+        ("POST", rf"{base}/login$"): "login.json",
+        ("GET", rf"{base}/locations\?.*"): "locations.json",
+        ("GET", rf"{base}/devices\?.*"): "devices.json",
+        ("GET", rf"{base}/groups\?.*"): "groups.json",
+        ("GET", rf"{base}/device/{DEVICE_ID}/attribute\?.*"): "attributes_rs1.json",
+        ("GET", rf"{base}/device/{DEVICE_ID}/consumption/hourly$"): "consumption_hourly.json",
+    }
+    for (method, pattern), name in routes.items():
+        mock_aiohttp._add(method, re.compile(pattern), payload=load_fixture(name), repeat=True)
+    mock_aiohttp.put(re.compile(rf"{base}/device/{DEVICE_ID}/attribute$"), payload={}, repeat=True)
+    mock_aiohttp.get(re.compile(rf"{base}/logout$"), payload={}, repeat=True)
+    return mock_aiohttp
+
+
+@pytest.fixture
+async def init_integration(hass, mock_cloud: MockSession, mock_session, recorder_loaded):
+    """Set the integration up through Home Assistant against the fake cloud.
+
+    Uses the real API client, coordinator and platforms; only HTTP is faked
+    and the energy-statistics import (which needs a database) is skipped.
+    """
+    from unittest.mock import AsyncMock, patch
+
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.schluterditraheat.const import DOMAIN
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="owner@example.com",
+        unique_id="owner@example.com",
+        data={"username": "owner@example.com", "password": "hunter2"},
+    )
+    entry.add_to_hass(hass)
+    with (
+        patch(
+            "custom_components.schluterditraheat.async_get_clientsession",
+            return_value=mock_session,
+        ),
+        patch(
+            "custom_components.schluterditraheat.async_update_energy_statistics",
+            new=AsyncMock(return_value={}),
+        ),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        yield entry
+
+
+@pytest.fixture
+def snapshot(snapshot):
+    """Snapshots with Home Assistant's serializer (stable ids and timestamps).
+
+    pytest-homeassistant-custom-component defines the same override, but
+    syrupy's own fixture can win depending on plugin load order.
+    """
+    from pytest_homeassistant_custom_component.syrupy import HomeAssistantSnapshotExtension
+
+    return snapshot.use_extension(HomeAssistantSnapshotExtension)

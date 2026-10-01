@@ -1,0 +1,6 @@
+{
+  "session": "test-session-id",
+  "refreshToken": "test-refresh-token",
+  "account": {"id": 201001},
+  "user": {"id": 301001, "format": {"temperature": "f"}}
+}
