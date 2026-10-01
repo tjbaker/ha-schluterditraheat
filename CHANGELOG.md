@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.1.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v2.0.0...2.1.0) (2026-10-01)
+
+
+* release 2.1.0 ([bcc9987](https://github.com/tjbaker/ha-schluterditraheat/commit/bcc9987c91223cf59a405d3275d292d9e210178b))
+
+
+### Bug Fixes
+
+* setup retry, config flow translations, and a reconfigure flow ([#13](https://github.com/tjbaker/ha-schluterditraheat/issues/13)) ([6cff387](https://github.com/tjbaker/ha-schluterditraheat/commit/6cff38740bd3900ce296d43e122160142c678ead))
+* use the thermostat's own setpoint limits ([#8](https://github.com/tjbaker/ha-schluterditraheat/issues/8)) ([7b18feb](https://github.com/tjbaker/ha-schluterditraheat/commit/7b18feb3e6febe895fe105fa9e56459cd4ac4430))
+
 ## [2.0.0](https://github.com/tjbaker/ha-schluterditraheat/compare/v1.1.0...v2.0.0) (2026-10-01)
 
 First release of the maintained fork of [KevinFarrell/ha-schluterditraheat](https://github.com/KevinFarrell/ha-schluterditraheat). It brings in the community pull requests that were waiting upstream, plus fixes found by testing on a DITRA-HEAT-E-RS1.
