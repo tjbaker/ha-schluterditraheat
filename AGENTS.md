@@ -86,22 +86,30 @@ Coordinator data shape: `dict[device_id, dict[str, Any]]`, merging static
 device metadata with per-poll attributes. Each entity reads its own
 `device_id`.
 
-### Planned conventions (migrate toward these; do not regress)
+### Conventions (keep these; do not regress)
 
-Some older code predates these conventions. New code should follow them
-even where existing code does not yet:
-
-- `ConfigEntry.runtime_data` with a typed alias instead of `hass.data`.
-- Pass `config_entry=` to `DataUpdateCoordinator`.
-- A shared base entity providing `device_info`; `_attr_has_entity_name = True`
-  and `_attr_translation_key` instead of hardcoded names (subject to the
-  compatibility rules above).
-- `ConfigEntryNotReady` for transient setup failures,
-  `ConfigEntryAuthFailed` for bad credentials, `UpdateFailed` during polls.
-- Reauth via `async_update_reload_and_abort`; add a reconfigure step.
+- The coordinator lives in `entry.runtime_data`, typed as
+  `SchluterConfigEntry`; never store state in `hass.data`.
+- Pass `config_entry=` to the coordinator.
+- Entities subclass `SchluterEntity` (`entity.py`), which owns
+  `device_info` and availability.
+- `ConfigEntryNotReady` for transient setup failures (network, rate
+  limits, the session cap), `ConfigEntryAuthFailed` only for credentials
+  the API actually rejected, `UpdateFailed` during polls.
+- Config flow: reauth and reconfigure use `async_update_reload_and_abort`;
+  the unique ID is the lowercased email, checked before any login.
+- UI text lives in `strings.json` and must be copied to
+  `translations/en.json` (a test enforces this); custom integrations
+  only load the latter.
 - Diagnostics must stay redacted: never include the email, password,
   session id, tokens, full device identifiers or location names. Extend
   `diagnostics.py` and the `stats.py` counters when adding failure modes.
+
+### Still to migrate
+
+- Entity names via `_attr_translation_key` instead of hardcoded
+  `_attr_name`, subject to the compatibility rules above (entity IDs
+  must not change).
 
 ## Schluter / Neviweb API Notes
 

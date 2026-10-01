@@ -5,12 +5,11 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import SchluterDataUpdateCoordinator
+from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,11 +17,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Schluter button entities from a config entry."""
-    coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     async_add_entities(
         [SchluterRefreshButton(coordinator, device_id) for device_id in coordinator.data]

@@ -11,20 +11,18 @@ from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import SchluterDataUpdateCoordinator
+from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .api import SchluterApiError
 from .const import (
     ATTR_DEVICE_ID,
     ATTR_GROUP_NAME,
     ATTR_IDENTIFIER,
     ATTR_LOCATION_NAME,
-    DOMAIN,
     MAX_TEMP_C,
     MIN_TEMP_C,
     MODE_AUTO,
@@ -41,11 +39,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Schluter climate entities from a config entry."""
-    coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     # Create a climate entity for each thermostat
     entities = [SchluterThermostat(coordinator, device_id) for device_id in coordinator.data]

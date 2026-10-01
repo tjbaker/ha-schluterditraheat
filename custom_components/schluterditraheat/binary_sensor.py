@@ -8,12 +8,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import SchluterDataUpdateCoordinator
-from .const import DOMAIN
+from . import SchluterConfigEntry, SchluterDataUpdateCoordinator
 from .entity import SchluterEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,11 +19,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: SchluterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Schluter binary sensor entities from a config entry."""
-    coordinator: SchluterDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     async_add_entities(
         [SchluterGfciBinarySensor(coordinator, device_id) for device_id in coordinator.data]
