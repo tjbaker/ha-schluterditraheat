@@ -7,12 +7,11 @@ against your real thermostat.
 ## Quick start
 
 ```bash
-make ha-up        # or: docker compose up -d
+make docker-up    # or: docker compose up -d
 ```
 
 1. Open http://localhost:8123. If another Home Assistant already uses that
-   port, pick a different one with `HA_PORT=8124 make ha-up`, and use the
-   same `HA_PORT` for later `make` commands.
+   port, pick a different one with `make docker-up HA_PORT=8124`.
 2. **First start only:** finish onboarding and create any user, for example
    `dev` / `dev`. After that, local browsers are logged in automatically.
 3. **Settings → Devices & Services → Add Integration → Schluter DITRA-HEAT**,
@@ -22,13 +21,16 @@ make ha-up        # or: docker compose up -d
 
 ```bash
 # Edit code under custom_components/schluterditraheat/, then:
-make ha-restart
+make docker-restart
 
-make ha-logs                          # follow logs
-make ha-logs | grep -i schluterditraheat
+make docker-logs                      # follow the full log
+make docker-logs-schluter             # only this integration's lines
+make docker-status                    # container state and health
+make docker-shell                     # shell inside the container
 
-make ha-down                          # stop
-make ha-reset                         # wipe onboarding, config entries and statistics
+make docker-down                      # stop, keeping the config volume
+make docker-reset                     # wipe onboarding, config entries and statistics
+make help                             # list every target
 ```
 
 ## What this config sets up

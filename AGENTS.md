@@ -53,11 +53,12 @@ Single test file: `.venv/bin/pytest tests/test_api.py -v`
 Local Home Assistant against a real thermostat (see `dev-config/README.md`):
 
 ```bash
-make ha-up          # http://localhost:8123, integration mounted read-only
-make ha-restart     # pick up code changes
-make ha-logs        # follow logs (debug logging is on for the integration)
-make ha-down        # stop
-make ha-reset       # wipe the HA volume and start fresh
+make docker-up              # http://localhost:8123, integration mounted read-only
+make docker-restart         # pick up code changes
+make docker-logs-schluter   # follow this integration's log lines (debug is on)
+make docker-down            # stop, keeping the HA config volume
+make docker-reset           # wipe the HA volume and start fresh
+make help                   # every target, including status, shell and pull
 ```
 
 The dev instance uses a real Schluter account, so it counts toward that
