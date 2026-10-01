@@ -88,8 +88,8 @@ device metadata with per-poll attributes. Each entity reads its own
 
 ### Planned conventions (migrate toward these; do not regress)
 
-Code is being brought up to the homeassistant-fansync standard. New code
-should follow these even where older code does not yet:
+Some older code predates these conventions. New code should follow them
+even where existing code does not yet:
 
 - `ConfigEntry.runtime_data` with a typed alias instead of `hass.data`.
 - Pass `config_entry=` to `DataUpdateCoordinator`.
