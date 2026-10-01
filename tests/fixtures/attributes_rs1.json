@@ -1,0 +1,33 @@
+{
+  "airFloorMode": "floor",
+  "floorSetpointPwm": 0,
+  "gfciStatus": "ok",
+  "loadWattOutput1": 924,
+  "loadWattOutput2": 0,
+  "occupancyMode": "home",
+  "outputPercentDisplay": {
+    "percent": 0,
+    "sourceType": "heating"
+  },
+  "roomSetpoint": 21.11,
+  "roomSetpointMax": 32,
+  "roomSetpointMin": 5,
+  "roomTemperatureDisplay": {
+    "status": "on",
+    "value": 19.44
+  },
+  "setpointMode": "off",
+  "signature": {
+    "hardRev": 1,
+    "model": 740,
+    "modelCfg": 0,
+    "protocol": "sinopcom",
+    "softBuildCfg": 0,
+    "softVersion": {
+      "major": 3,
+      "middle": 7,
+      "minor": 10
+    }
+  },
+  "wifiRssi": -75
+}
