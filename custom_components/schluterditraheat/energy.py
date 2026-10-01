@@ -14,7 +14,7 @@ are simply absent from the cumulative sum.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components.recorder import get_instance
@@ -37,6 +37,12 @@ from .const import DOMAIN
 from .stats import EnergyStats
 
 _LOGGER = logging.getLogger(__name__)
+
+# Daily buckets are stamped at 12:00 UTC, so which hours a day covers depends
+# on a timezone the API doesn't state. When backfilling, only use days that
+# end before the hourly history starts under any offset (UTC-12 to UTC+14), so
+# no energy is counted twice; at worst one boundary day is left out.
+_MAX_UTC_OFFSET = timedelta(hours=14)
 
 
 def statistic_id_for(identifier: str) -> str:
@@ -98,6 +104,11 @@ async def async_update_energy_statistics(
             last_state = row.get("state") or 0.0
             last_start = _row_start(row)
 
+        if last_start is None:
+            # First import: prepend up to a month of daily history so the
+            # Energy dashboard doesn't start nearly empty.
+            points = await _with_daily_backfill(api, device_id, name, points) + points
+
         rows = api.build_energy_statistics(
             points,
             last_start=last_start,
@@ -131,3 +142,33 @@ async def async_update_energy_statistics(
         )
 
     return imported
+
+
+async def _with_daily_backfill(
+    api: SchluterApi,
+    device_id: int,
+    name: str,
+    hourly: list[tuple[datetime, float]],
+) -> list[tuple[datetime, float]]:
+    """Daily buckets that end before the hourly history begins, or [] if unavailable."""
+    try:
+        raw = await api.get_consumption_history(device_id, "daily")
+    except SchluterApiError as err:
+        _LOGGER.debug("Daily energy history unavailable for %s: %s", name, err)
+        return []
+
+    first_hourly = hourly[0][0]
+    days = [
+        (start, kwh)
+        for start, kwh in api.parse_consumption_history(raw)
+        if _day_end_upper_bound(start) <= first_hourly
+    ]
+    if days:
+        _LOGGER.debug("Backfilling %d days of energy history for %s", len(days), name)
+    return days
+
+
+def _day_end_upper_bound(stamp: datetime) -> datetime:
+    """Latest moment the daily bucket stamped ``stamp`` could end, in UTC."""
+    midnight = stamp.replace(hour=0, minute=0, second=0, microsecond=0)
+    return midnight + timedelta(days=1) + _MAX_UTC_OFFSET
