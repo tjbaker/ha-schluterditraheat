@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.1](https://github.com/tjbaker/ha-schluterditraheat/compare/2.2.0...2.2.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* create the Home/Away select even if its first read fails ([141334d](https://github.com/tjbaker/ha-schluterditraheat/commit/141334dea03c51b50e1bebe1f6cd2bd6bb4ee10c))
+* keep a poll's data when the Home/Away read hits a rate limit ([38ce4dd](https://github.com/tjbaker/ha-schluterditraheat/commit/38ce4dd99cb8e362e3ed8354f7e5fde72d295a82))
+* re-read the thermostat when a preset change partly fails ([7a3e185](https://github.com/tjbaker/ha-schluterditraheat/commit/7a3e18564ade430956049ce5cffac435195e8863))
+
 ## [2.2.0](https://github.com/tjbaker/ha-schluterditraheat/compare/2.1.0...2.2.0) (2026-10-01)
 
 ### Upgrade notes
