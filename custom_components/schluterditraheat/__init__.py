@@ -352,22 +352,35 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
 
     async def _async_fetch_location_modes(
         self, static_data: dict[int, dict[str, Any]]
-    ) -> dict[int, str | None]:
+    ) -> tuple[dict[int, str | None], SchluterRateLimitError | None]:
         """Read each location's home/away mode (one request per location).
 
-        Rate, daily-cap and auth errors propagate to the poll's handling; any
-        other failure just leaves that location's mode unknown this poll.
+        The thermostat data for this poll is already in hand, so a failure here
+        must not discard it: a location whose mode can't be read keeps the last
+        known value. Rate limits stop the remaining reads and are returned so
+        the poll can back off; auth errors (after the client's own re-login)
+        still fail the poll.
         """
+        previous = {
+            thermostat["location_id"]: thermostat.get("location_mode")
+            for thermostat in (self.data or {}).values()
+            if "location_id" in thermostat
+        }
         modes: dict[int, str | None] = {}
+        rate_limited: SchluterRateLimitError | None = None
         for location_id in {s["location_id"] for s in static_data.values() if "location_id" in s}:
-            try:
-                modes[location_id] = await self.api.get_location_mode(location_id)
-            except SchluterRateLimitError, SchluterAuthenticationError:
-                raise
-            except SchluterApiError as err:
-                _LOGGER.debug("Location %s mode unavailable: %s", location_id, err)
-                modes[location_id] = None
-        return modes
+            if rate_limited is None:
+                try:
+                    modes[location_id] = await self.api.get_location_mode(location_id)
+                    continue
+                except SchluterAuthenticationError:
+                    raise
+                except SchluterRateLimitError as err:
+                    rate_limited = err
+                except SchluterApiError as err:
+                    _LOGGER.debug("Location %s mode unavailable: %s", location_id, err)
+            modes[location_id] = previous.get(location_id)
+        return modes, rate_limited
 
     async def _async_fetch_data(self) -> dict[int, dict[str, Any]]:
         """Fetch data from API.
@@ -397,14 +410,21 @@ class SchluterDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict[str, An
             # Fetch dynamic attributes for known devices
             device_ids = list(static_data)
             dynamic_data = await self.api.get_device_attributes_bulk(device_ids)
+            location_modes, location_rate_limit = await self._async_fetch_location_modes(
+                static_data
+            )
 
             # Success: clear any backoff, refresh the budget-derived defer from
-            # the headers the server just returned, then derive the interval.
+            # the headers the server just returned (including the location
+            # reads), then derive the interval. A limit hit while reading
+            # locations still backs off, without discarding this poll's data.
             self._clear_backoff()
+            if isinstance(location_rate_limit, SchluterDailyLimitError):
+                self.note_daily_limit()
+            elif location_rate_limit is not None:
+                self._apply_rate_limit_backoff()
             self._update_throttle_state()
             self._recompute_interval()
-
-            location_modes = await self._async_fetch_location_modes(static_data)
 
             # Merge static + dynamic, same shape as get_all_thermostats()
             result: dict[int, dict[str, Any]] = {}
