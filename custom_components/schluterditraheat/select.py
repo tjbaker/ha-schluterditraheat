@@ -23,10 +23,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up location Home/Away and per-thermostat setting selects."""
     coordinator = entry.runtime_data
+    # Created for every location, even if its mode couldn't be read at
+    # startup; the state is unknown until a poll reads it.
     locations = {
         thermostat["location_id"]
         for thermostat in coordinator.data.values()
-        if thermostat.get("location_mode") is not None
+        if "location_id" in thermostat
     }
     entities: list[SelectEntity] = [
         SchluterLocationModeSelect(coordinator, location_id) for location_id in sorted(locations)
