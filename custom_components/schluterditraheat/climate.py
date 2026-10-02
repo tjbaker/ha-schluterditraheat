@@ -237,6 +237,9 @@ class SchluterThermostat(SchluterEntity, ClimateEntity):
             if mode is not None:
                 await self.coordinator.api.set_mode(self._device_id, mode)
         except SchluterApiError as err:
+            # A preset can take two writes; if the second fails the first may
+            # already have applied, so re-read the thermostat before reporting.
+            await self.coordinator.async_request_refresh()
             raise HomeAssistantError(f"Failed to set preset mode: {err}") from err
 
         if self._device_id in self.coordinator.data:
