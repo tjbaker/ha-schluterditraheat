@@ -594,3 +594,80 @@ class TestKeypad:
             )
 
         assert hass.states.get(self.ENTITY).state == "unlocked"
+
+
+LOCATION_MODE_GET = re.compile(rf"{re.escape(API_BASE_URL)}/location/{LOCATION_ID}/mode$")
+
+
+class TestReviewRegressions:
+    """Regressions for issues found in code review of 2.0.0..2.2.0."""
+
+    async def test_location_rate_limit_keeps_poll_data(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test a 429 on the Home/Away read backs off without discarding thermostat data."""
+        coordinator = init_integration.runtime_data
+        mock_cloud.fail_next("GET", LOCATION_MODE_GET, status=429)
+
+        await coordinator.async_refresh()
+
+        assert coordinator.last_update_success
+        assert coordinator._backoff_interval is not None
+        assert hass.states.get(CLIMATE).state != "unavailable"
+        assert hass.states.get("select.home_occupancy").state == "home"
+
+    async def test_location_daily_cap_keeps_poll_data(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry, mock_cloud: MockSession
+    ) -> None:
+        """Test the daily cap on the Home/Away read pauses polling but keeps the data."""
+        coordinator = init_integration.runtime_data
+        mock_cloud.fail_next("GET", LOCATION_MODE_GET, payload={"error": {"code": "ACCDAYREQMAX"}})
+
+        await coordinator.async_refresh()
+
+        assert coordinator.last_update_success
+        assert coordinator.daily_limit_reached
+        assert hass.states.get("select.home_occupancy").state == "home"
+
+    @pytest.fixture
+    def mode_unreadable_at_startup(self, mock_cloud: MockSession) -> None:
+        """Fail the first Home/Away read, before the integration is set up."""
+        mock_cloud.fail_next("GET", LOCATION_MODE_GET, status=500, body="error")
+
+    async def test_select_created_when_mode_unreadable_at_startup(
+        self,
+        hass: HomeAssistant,
+        mode_unreadable_at_startup: None,
+        init_integration: MockConfigEntry,
+    ) -> None:
+        """Test the Home/Away select exists even if the first mode read fails."""
+        assert hass.states.get("select.home_occupancy").state == "unknown"
+
+    async def test_partial_preset_failure_refreshes(
+        self, hass: HomeAssistant, init_integration: MockConfigEntry
+    ) -> None:
+        """Test a preset whose second write fails re-reads the thermostat before raising.
+
+        Away -> Frost protection writes occupancy=home, then the setpoint mode;
+        if the second write fails the first has already applied.
+        """
+        from custom_components.schluterditraheat.api import SchluterApiError
+
+        coordinator = init_integration.runtime_data
+        coordinator.data[DEVICE_ID]["occupancy_mode"] = "away"
+        coordinator.async_update_listeners()
+        with (
+            patch.object(
+                coordinator.api, "set_mode", new=AsyncMock(side_effect=SchluterApiError("down"))
+            ),
+            patch.object(coordinator, "async_request_refresh", new=AsyncMock()) as refresh,
+            pytest.raises(HomeAssistantError),
+        ):
+            await hass.services.async_call(
+                CLIMATE_DOMAIN,
+                SERVICE_SET_PRESET_MODE,
+                {ATTR_ENTITY_ID: CLIMATE, ATTR_PRESET_MODE: "frost_protection"},
+                blocking=True,
+            )
+
+        refresh.assert_awaited_once()
